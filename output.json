@@ -1,0 +1,115 @@
+{
+    "pages": [
+        {
+            "name": "Home",
+            "description": "Company homepage. Include product name, mission, vision, product description, info about Junior Achievement participation, navigation elements (links to 3D viewer and Shareholder Updates page), and a visually engaging layout.",
+            "required_elements": [
+                "logo",
+                "productName",
+                "mission",
+                "vision",
+                "productDescription",
+                "juniorAchievementNote",
+                "navigationLinks"
+            ]
+        },
+        {
+            "name": "3DModelViewer",
+            "description": "Page for customers to interact with and customize the main board .STL file by placing modules. Pre-loaded with 'laser cut1.stl' (Board) and 'Nexus Module Set'.",
+            "required_elements": [
+                "mainBoardStlUpload",
+                "moduleStlUploads",
+                "interactive3DViewer",
+                "modulePlacementControls",
+                "previewDisplay"
+            ],
+            "structured_data": {
+                "uploadedFiles": [
+                    {
+                        "type": "mainBoard",
+                        "filename": "laser cut1.stl",
+                        "metadata": {
+                            "uploadedBy": "system"
+                        }
+                    },
+                    {
+                        "type": "module",
+                        "filename": "All Together STL File from Nexus International School.stl",
+                        "metadata": {
+                            "moduleType": "set",
+                            "uploadedBy": "system"
+                        }
+                    }
+                ],
+                "modulePlacements": [
+                    {
+                        "moduleId": "string",
+                        "position": {
+                            "x": "number",
+                            "y": "number",
+                            "z": "number"
+                        },
+                        "rotation": {
+                            "x": "number",
+                            "y": "number",
+                            "z": "number"
+                        }
+                    }
+                ]
+            },
+            "error_handling": [
+                {
+                    "error": "invalidFileType",
+                    "message": "Please upload a valid .stl file."
+                },
+                {
+                    "error": "uploadFailed",
+                    "message": "Upload failed, please try again."
+                },
+                {
+                    "error": "unsupportedBrowser",
+                    "message": "3D viewer may not work in this browser."
+                }
+            ]
+        },
+        {
+            "name": "ShareholderUpdates",
+            "description": "Page displaying company updates, mission, vision, and timeline of key moments. Replaces the previous investment page as all shares are sold.",
+            "required_elements": [
+                "mission",
+                "vision",
+                "timelineFeed",
+                "phaseUpdates"
+            ],
+            "structured_data": {
+                "updates": [
+                    {
+                        "phase": "Phase 1",
+                        "title": "Formation & Ideation",
+                        "date": "Late Sept – Early Oct"
+                    },
+                    {
+                        "phase": "Phase 2",
+                        "title": "Market Validation & Branding",
+                        "date": "Mid-Oct"
+                    },
+                    {
+                        "phase": "Phase 3",
+                        "title": "Operations & Approvals",
+                        "date": "Late Oct – Nov"
+                    },
+                    {
+                        "phase": "Phase 4",
+                        "title": "Financial Structure & Capitalization",
+                        "date": "Nov"
+                    },
+                    {
+                        "phase": "Phase 5",
+                        "title": "Production Execution",
+                        "date": "Late Nov – Present"
+                    }
+                ]
+            }
+        }
+    ]
+}
