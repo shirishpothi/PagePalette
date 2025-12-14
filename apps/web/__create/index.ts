@@ -18,6 +18,8 @@ import NeonAdapter from './adapter';
 import { getHTMLForErrorPage } from './get-html-for-error-page';
 import { isAuthAction } from './is-auth-action';
 import { API_BASENAME, api } from './route-builder';
+// Direct import for order route to ensure it's bundled
+import * as orderRoute from '../src/app/api/order/route.js';
 neonConfig.webSocketConstructor = ws;
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
@@ -256,6 +258,14 @@ if (process.env.AUTH_SECRET) {
 }
 
 app.route(API_BASENAME, api);
+
+// Explicitly register order routes (guaranteed to be bundled)
+app.get('/api/order', async (c) => {
+  return orderRoute.GET(c.req.raw, { params: {} });
+});
+app.post('/api/order', async (c) => {
+  return orderRoute.POST(c.req.raw, { params: {} });
+});
 
 // Catch-all for unhandled API routes to return JSON 404 instead of HTML
 app.all('/api/*', (c) => {
