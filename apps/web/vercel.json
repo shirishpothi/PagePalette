@@ -1,4 +1,10 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "react-router"
+  "framework": "react-router",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
 }
