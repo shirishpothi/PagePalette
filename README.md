@@ -24,3 +24,4 @@ Security checklist performed before push
 - `.env` files are ignored by `.gitignore` and should not be committed.
 
 If you want me to set up Vercel or DNS changes, grant access or provide the `VERCEL_TOKEN` and DNS provider instructions.
+
