@@ -1,6 +1,22 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build && mkdir -p build/server/src/app && cp -R src/app/api build/server/src/app/api 2>/dev/null || true",
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "outputDirectory": "build/client",
-  "framework": null,
-  "installCommand": "npm install --legacy-peer-deps"
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/server"
+    }
+  ],
+  "functions": {
+    "api/server.js": {
+      "runtime": "@vercel/node@3.0.0",
+      "includeFiles": "build/**"
+    }
+  }
 }
