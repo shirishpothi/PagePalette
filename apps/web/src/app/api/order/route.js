@@ -2,8 +2,8 @@ import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend conditionally (avoid during build)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const SHEETDB_URL = "https://sheetdb.io/api/v1/i3ywkjbojouc9";
 
 // Security: Input sanitization helper
@@ -36,6 +36,17 @@ const validateTotal = (items, total) => {
 
 export async function POST(request) {
   try {
+    // Check if required environment variables are present
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY environment variable is not set');
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Email service configuration error' 
+      }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const body = await request.json();
     
     // Security: Extract and validate required fields
