@@ -1,0 +1,144 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "page": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "about/page": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "order/page": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "not-found": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "src/app/root.tsx",
+        "path": "",
+        "config": {}
+      },
+      "page": {
+        "id": "page",
+        "parentId": "root",
+        "file": "src/app/page.jsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "about/page": {
+        "id": "about/page",
+        "parentId": "root",
+        "file": "src/app/about/page.jsx",
+        "path": "about",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "order/page": {
+        "id": "order/page",
+        "parentId": "root",
+        "file": "src/app/order/page.jsx",
+        "path": "order",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "not-found": {
+        "id": "not-found",
+        "parentId": "root",
+        "file": "src/app/not-found.jsx",
+        "path": "*",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    }
+  },
+  "reactRouterConfig": {
+    "appDirectory": "/Users/shirishpothi/Downloads/create-anything/apps/web/src/app",
+    "basename": "/",
+    "buildDirectory": "/Users/shirishpothi/Downloads/create-anything/apps/web/build",
+    "future": {
+      "unstable_optimizeDeps": false,
+      "unstable_subResourceIntegrity": false,
+      "v8_middleware": false,
+      "v8_splitRouteModules": false,
+      "v8_viteEnvironmentApi": false
+    },
+    "prerender": false,
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "root.tsx",
+        "path": ""
+      },
+      "page": {
+        "id": "page",
+        "parentId": "root",
+        "file": "./page.jsx",
+        "index": true
+      },
+      "about/page": {
+        "id": "about/page",
+        "parentId": "root",
+        "file": "./about/page.jsx",
+        "path": "about"
+      },
+      "order/page": {
+        "id": "order/page",
+        "parentId": "root",
+        "file": "./order/page.jsx",
+        "path": "order"
+      },
+      "not-found": {
+        "id": "not-found",
+        "parentId": "root",
+        "file": "./not-found.jsx",
+        "path": "*"
+      }
+    },
+    "routeDiscovery": {
+      "mode": "lazy",
+      "manifestPath": "/__manifest"
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true,
+    "unstable_routeConfig": [
+      {
+        "id": "root",
+        "path": "",
+        "file": "root.tsx",
+        "children": [
+          {
+            "file": "./page.jsx",
+            "index": true
+          },
+          {
+            "file": "./about/page.jsx",
+            "path": "about"
+          },
+          {
+            "file": "./order/page.jsx",
+            "path": "order"
+          },
+          {
+            "file": "./not-found.jsx",
+            "path": "*"
+          }
+        ]
+      }
+    ]
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}

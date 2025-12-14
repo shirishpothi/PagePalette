@@ -1,7 +1,7 @@
 // Vercel Serverless API Route for Order Submission
 import { Resend } from 'resend';
 
-// Initialize Resend conditionally (avoid during build)
+// Initialize Resend conditionally
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const SHEETDB_URL = "https://sheetdb.io/api/v1/i3ywkjbojouc9";
 
