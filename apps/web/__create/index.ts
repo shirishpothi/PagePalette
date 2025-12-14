@@ -35,10 +35,11 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   };
 }
 
-const pool = new Pool({
+// Only initialize database if DATABASE_URL is configured
+const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-});
-const adapter = NeonAdapter(pool);
+}) : null;
+const adapter = pool ? NeonAdapter(pool) : null;
 
 const app = new Hono();
 
@@ -84,7 +85,8 @@ for (const method of ['post', 'put', 'patch'] as const) {
   );
 }
 
-if (process.env.AUTH_SECRET) {
+// Only initialize auth if both AUTH_SECRET and DATABASE_URL are configured
+if (process.env.AUTH_SECRET && process.env.DATABASE_URL && adapter) {
   app.use(
     '*',
     initAuthConfig((c) => ({
@@ -243,13 +245,25 @@ app.all('/integrations/:path{.+}', async (c, next) => {
   });
 });
 
-app.use('/api/auth/*', async (c, next) => {
-  if (isAuthAction(c.req.path)) {
-    return authHandler()(c, next);
-  }
-  return next();
-});
+// Only handle auth routes if AUTH_SECRET is configured
+if (process.env.AUTH_SECRET) {
+  app.use('/api/auth/*', async (c, next) => {
+    if (isAuthAction(c.req.path)) {
+      return authHandler()(c, next);
+    }
+    return next();
+  });
+}
+
 app.route(API_BASENAME, api);
+
+// Catch-all for unhandled API routes to return JSON 404 instead of HTML
+app.all('/api/*', (c) => {
+  return c.json(
+    { error: 'Not Found', message: `API endpoint ${c.req.path} does not exist` },
+    404
+  );
+});
 
 export default await createHonoServer({
   app,

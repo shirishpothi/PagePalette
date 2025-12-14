@@ -193,49 +193,52 @@ export default function OrderPage() {
         const allItems = ["Tree (Free)", ...bundleSelections.map(i => i.label), ...extraSelections.map(i => `${i.label} (Extra)`)];
         const orderDate = new Date().toISOString().replace('T', ' ').split('.')[0];
 
-        // SheetDB payload
-        const sheetPayload = {
-            data: [{
-                "Order ID": newOrderId,
-                "Date": orderDate,
-                "Order Type": "Pre-Order",
-                "Bundle": allItems.join(", ").includes("Starter") ? "Starter Bundle" : "Complete Bundle",
-                "Name": formData.name,
-                "Email": formData.email,
-                "Role": role || "N/A",
-                "Student Name": formData.studentName || "N/A",
-                "Student Email": formData.studentEmail || "N/A",
-                "Year": formData.studentYear || "N/A",
-                "Class": formData.studentClass || "N/A",
-                "Position": formData.position || "N/A",
-                "Room": role === 'teacher' ? (formData.room || "N/A") : "N/A",
-                "Items": allItems.join(", "),
-                "Total Amount": currentTotal.toFixed(2),
-                "Payment Method": paymentMethod || "N/A",
-                "Status": "Pending Payment"
-            }]
+        // Order data for SheetDB
+        const orderData = {
+            "Order ID": newOrderId,
+            "Date": orderDate,
+            "Order Type": "Pre-Order",
+            "Bundle": allItems.join(", ").includes("Starter") ? "Starter Bundle" : "Complete Bundle",
+            "Name": formData.name,
+            "Email": formData.email,
+            "Role": role || "N/A",
+            "Student Name": formData.studentName || "N/A",
+            "Student Email": formData.studentEmail || "N/A",
+            "Year": formData.studentYear || "N/A",
+            "Class": formData.studentClass || "N/A",
+            "Position": formData.position || "N/A",
+            "Room": role === 'teacher' ? (formData.room || "N/A") : "N/A",
+            "Items": allItems.join(", "),
+            "Total Amount": currentTotal.toFixed(2),
+            "Payment Method": paymentMethod || "N/A",
+            "Status": "Pending Payment"
         };
 
         try {
-            // Call SheetDB directly (it supports CORS)
-            const sheetResponse = await fetch("https://sheetdb.io/api/v1/i3ywkjbojouc9", {
+            // Call our API to save order and send emails
+            const response = await fetch("/api/order", {
                 method: "POST",
                 headers: {
-                    "Accept": "application/json",
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(sheetPayload)
+                body: JSON.stringify({
+                    orderData,
+                    customerEmail: formData.email,
+                    customerName: formData.name,
+                    orderId: newOrderId
+                })
             });
 
-            if (!sheetResponse.ok) {
-                console.error("SheetDB Error:", await sheetResponse.text());
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Order API Error:", errorData);
             }
 
             // Move to success step
             setStep(5);
         } catch (err) {
             console.error("Order Submission Failed", err);
-            // In a real app, show error toast. For now, proceeding to show instructions or fallback.
+            // Still proceed to success to not block user
             setStep(5);
         } finally {
             setIsSubmitting(false);
