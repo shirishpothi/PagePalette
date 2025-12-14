@@ -1,4 +1,10 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "react-router"
+  "framework": "react-router",
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
 }
