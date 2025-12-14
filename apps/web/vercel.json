@@ -1,4 +1,14 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "react-router"
+  "framework": "react-router",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs22.x"
+    }
+  },
+  "build": {
+    "env": {
+      "NODE_VERSION": "22"
+    }
+  }
 }
