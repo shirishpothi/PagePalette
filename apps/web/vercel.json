@@ -1,4 +1,12 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "react-router"
+  "framework": "react-router",
+  "rewrites": [
+    { "source": "/api/order", "destination": "/api/order" }
+  ],
+  "functions": {
+    "api/order.js": {
+      "runtime": "@vercel/node@3.0.0"
+    }
+  }
 }
