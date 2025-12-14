@@ -1,3 +1,7 @@
+/**
+ * Build version: 2024-01-15-v2
+ * This file is the main Hono server entry point for the React Router app.
+ */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import nodeConsole from 'node:console';
 import { skipCSRFCheck } from '@auth/core';
