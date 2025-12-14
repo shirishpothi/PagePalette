@@ -191,35 +191,44 @@ export default function OrderPage() {
 
         // Construct Item String
         const allItems = ["Tree (Free)", ...bundleSelections.map(i => i.label), ...extraSelections.map(i => `${i.label} (Extra)`)];
+        const orderDate = new Date().toISOString().replace('T', ' ').split('.')[0];
+
+        // SheetDB payload
+        const sheetPayload = {
+            data: [{
+                "Order ID": newOrderId,
+                "Date": orderDate,
+                "Order Type": "Pre-Order",
+                "Bundle": allItems.join(", ").includes("Starter") ? "Starter Bundle" : "Complete Bundle",
+                "Name": formData.name,
+                "Email": formData.email,
+                "Role": role || "N/A",
+                "Student Name": formData.studentName || "N/A",
+                "Student Email": formData.studentEmail || "N/A",
+                "Year": formData.studentYear || "N/A",
+                "Class": formData.studentClass || "N/A",
+                "Position": formData.position || "N/A",
+                "Room": role === 'teacher' ? (formData.room || "N/A") : "N/A",
+                "Items": allItems.join(", "),
+                "Total Amount": currentTotal.toFixed(2),
+                "Payment Method": paymentMethod || "N/A",
+                "Status": "Pending Payment"
+            }]
+        };
 
         try {
-            // Call Backend API (Handles both SheetDB and Email)
-            const response = await fetch("/api/order", {
+            // Call SheetDB directly (it supports CORS)
+            const sheetResponse = await fetch("https://sheetdb.io/api/v1/i3ywkjbojouc9", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    orderId: newOrderId,
-                    name: formData.name,
-                    email: formData.email,
-                    role,
-                    items: allItems.join(", "),
-                    total: currentTotal,
-                    paymentMethod,
-
-                    // Detailed Info
-                    studentName: formData.studentName || "",
-                    studentEmail: formData.studentEmail || "",
-                    year: formData.studentYear || "",
-                    classCode: formData.studentClass || "",
-                    position: formData.position || "",
-                    classroom: role === 'teacher' ? formData.room : "",
-                })
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(sheetPayload)
             });
 
-            if (!response.ok) {
-                const errData = await response.json();
-                console.error("Backend Error:", errData);
-                // We don't block success UI on email failure effectively, but good to know.
+            if (!sheetResponse.ok) {
+                console.error("SheetDB Error:", await sheetResponse.text());
             }
 
             // Move to success step
