@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "buildCommand": "npm install --legacy-peer-deps && npm run build && mkdir -p build/server/src/app && cp -R src/app/api build/server/src/app/api 2>/dev/null || true",
   "outputDirectory": "build/client",
   "framework": null,
   "installCommand": "npm install --legacy-peer-deps"
