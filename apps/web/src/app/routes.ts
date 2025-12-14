@@ -113,7 +113,7 @@ if (import.meta.env.DEV) {
 	}
 }
 const tree = buildRouteTree(__dirname);
-const notFound = route('*?', './not-found.jsx');
+const notFound = route('*', './not-found.jsx');
 const routes = [...generateRoutes(tree), notFound];
 
 export default routes;
