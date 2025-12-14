@@ -25,3 +25,4 @@ Security checklist performed before push
 
 If you want me to set up Vercel or DNS changes, grant access or provide the `VERCEL_TOKEN` and DNS provider instructions.
 
+# Trigger latest build
