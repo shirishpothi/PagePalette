@@ -96,3 +96,11 @@ export async function POST(request) {
     });
   }
 }
+
+// GET handler for debugging
+export async function GET(request) {
+  return new Response(JSON.stringify({ status: 'Order API is working', methods: ['POST'] }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}

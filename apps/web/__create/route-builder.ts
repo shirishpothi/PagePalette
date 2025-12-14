@@ -10,6 +10,8 @@ const api = new Hono();
 
 // Get current directory
 const __dirname = join(fileURLToPath(new URL('.', import.meta.url)), '../src/app/api');
+console.log('[route-builder] API directory:', __dirname);
+
 if (globalThis.fetch) {
   globalThis.fetch = updatedFetch;
 }
@@ -75,7 +77,7 @@ function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
 async function registerRoutes() {
   const routeFiles = (
     await findRouteFiles(__dirname).catch((error) => {
-      console.error('Error finding route files:', error);
+      console.error('[route-builder] Error finding route files:', error);
       return [];
     })
   )
@@ -84,12 +86,15 @@ async function registerRoutes() {
       return b.length - a.length;
     });
 
+  console.log('[route-builder] Found route files:', routeFiles);
+
   // Clear existing routes
   api.routes = [];
 
   for (const routeFile of routeFiles) {
     try {
       const route = await import(/* @vite-ignore */ `${routeFile}?update=${Date.now()}`);
+      console.log('[route-builder] Loaded route:', routeFile, 'exports:', Object.keys(route));
 
       const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
       for (const method of methods) {
@@ -139,19 +144,68 @@ async function registerRoutes() {
   }
 }
 
-// Initial route registration
-await registerRoutes();
+// Use import.meta.glob to ensure routes are bundled in production
+const routeModules = import.meta.glob('../src/app/api/**/route.js', {
+  eager: true,
+});
+
+console.log('[route-builder] Glob found routes:', Object.keys(routeModules));
+
+// Register routes from glob imports
+function registerRoutesFromGlob() {
+  api.routes = [];
+  
+  for (const [path, module] of Object.entries(routeModules)) {
+    const route = module as Record<string, unknown>;
+    
+    // Convert path like '../src/app/api/order/route.js' to '/order'
+    const relativePath = path
+      .replace('../src/app/api', '')
+      .replace('/route.js', '')
+      || '/';
+    
+    const honoPath = relativePath === '/' ? '/' : relativePath;
+    
+    console.log('[route-builder] Registering route:', honoPath, 'methods:', Object.keys(route).filter(k => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(k)));
+    
+    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const;
+    for (const method of methods) {
+      if (typeof route[method] === 'function') {
+        const handler: Handler = async (c) => {
+          const params = c.req.param();
+          return await (route[method] as Function)(c.req.raw, { params });
+        };
+        
+        switch (method) {
+          case 'GET':
+            api.get(honoPath, handler);
+            break;
+          case 'POST':
+            api.post(honoPath, handler);
+            break;
+          case 'PUT':
+            api.put(honoPath, handler);
+            break;
+          case 'DELETE':
+            api.delete(honoPath, handler);
+            break;
+          case 'PATCH':
+            api.patch(honoPath, handler);
+            break;
+        }
+      }
+    }
+  }
+}
+
+// Register routes
+registerRoutesFromGlob();
 
 // Hot reload routes in development
 if (import.meta.env.DEV) {
-  import.meta.glob('../src/app/api/**/route.js', {
-    eager: true,
-  });
   if (import.meta.hot) {
     import.meta.hot.accept((newSelf) => {
-      registerRoutes().catch((err) => {
-        console.error('Error reloading routes:', err);
-      });
+      registerRoutesFromGlob();
     });
   }
 }
