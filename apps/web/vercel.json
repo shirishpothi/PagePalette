@@ -1,22 +1,4 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "outputDirectory": "build/client",
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/server"
-    }
-  ],
-  "functions": {
-    "api/server.js": {
-      "runtime": "@vercel/node@3.0.0",
-      "includeFiles": "build/**"
-    }
-  }
+  "framework": "react-router"
 }
