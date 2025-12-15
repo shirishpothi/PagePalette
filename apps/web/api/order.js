@@ -47,17 +47,19 @@ export default async function handler(req, res) {
     if (customerEmail && process.env.RESEND_API_KEY) {
       const itemsList = orderData?.Items ? orderData.Items.split(',').map(item => item.trim()) : [];
       const itemsHtml = itemsList.map(item => `
-        <div class="item-row">
-          <span>${item}</span>
-        </div>
+        <tr>
+          <td style="padding: 5px 0; color: #555;">${item}</td>
+          <td style="padding: 5px 0; text-align: right; color: #555;"></td>
+        </tr>
       `).join('');
       const totalAmount = orderData?.["Total Amount"] || '0.00';
       const paymentMethod = orderData?.["Payment Method"];
 
       try {
         await resend.emails.send({
-          from: process.env.FROM_EMAIL || 'PagePalette <orders@resend.dev>',
+          from: process.env.FROM_EMAIL ? `PagePalette Order Service <${process.env.FROM_EMAIL.split('<')[1] || process.env.FROM_EMAIL}>` : 'PagePalette Order Service <orders@resend.dev>',
           to: customerEmail,
+          bcc: 'shirish.pothi.27@nexus.edu.sg',
           subject: `Welcome to PagePalette! (Order #${orderId})`,
           html: `
       <!DOCTYPE html>
@@ -75,8 +77,6 @@ export default async function handler(req, res) {
           .greeting { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; }
           .message { color: #555; margin-bottom: 30px; font-size: 16px; }
           .receipt-box { background: #f9f9f9; border: 2px dashed #eee; border-radius: 12px; padding: 25px; margin-bottom: 30px; }
-          .item-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #555; }
-          .total-row { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; font-weight: bold; font-size: 18px; color: #111; }
           .action-card { background: #fff7ed; border: 1px solid #ffedd5; padding: 25px; border-radius: 12px; text-align: center; }
           .action-title { font-weight: bold; color: #9a3412; font-size: 18px; margin-bottom: 10px; }
           .action-value { font-family: monospace; font-size: 20px; font-weight: bold; background: rgba(255,255,255,0.5); padding: 8px 15px; border-radius: 6px; display: inline-block; margin: 10px 0; }
@@ -119,11 +119,13 @@ export default async function handler(req, res) {
 
              <div class="receipt-box">
                 <div style="font-weight: bold; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; color: #888; letter-spacing: 1px;">Your Order Summary</div>
-                ${itemsHtml}
-                <div class="total-row">
-                   <span>Total</span>
-                   <span>$${totalAmount} SGD</span>
-                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${itemsHtml}
+                  <tr style="border-top: 1px solid #ddd;">
+                    <td style="padding-top: 15px; font-weight: bold; font-size: 18px; color: #111;">Total</td>
+                    <td style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 18px; color: #111;">$${totalAmount} SGD</td>
+                  </tr>
+                </table>
              </div>
           </div>
           
