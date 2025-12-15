@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Sparkles, Users, Star, Check, Leaf, Recycle, Heart, Quote, Palette, RefreshCw, Gift } from "lucide-react";
-import { Button, Card, Badge } from "../components/ui";
+import { Button, Card, Badge, Highlight } from "../components/ui";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
 
 // Testimonials data - Updated to match About Us data/style
@@ -316,9 +316,11 @@ export default function HomePage() {
             </motion.h1>
             <motion.span
               variants={itemVariants}
-              className="block text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] bg-clip-text text-transparent font-proxima-sera leading-tight py-2 md:py-4"
+              className="block text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white font-proxima-sera leading-tight py-2 md:py-4"
             >
-              One PagePal at a Time
+              <Highlight className="text-white">
+                One PagePal at a Time
+              </Highlight>
             </motion.span>
           </div>
 

@@ -407,9 +407,9 @@ export default function OrderPage() {
                         <Button 
                             variant="secondary" 
                             size="lg"
-                            className={`w-full mt-auto btn-snake-border ${bundle.id === 'complete' 
-                                ? "btn-snake-border-green text-[#0a0a0a] font-bold" 
-                                : ""}`}
+                            className={`w-full mt-auto ${bundle.id === 'complete' 
+                                ? "bg-[#4ADE80] hover:bg-[#22C55E] text-[#0a0a0a] border-0 font-bold" 
+                                : "bg-[#1a1a1a] border-[#333] group-hover:bg-[#252525]"}`}
                         >
                             Select {bundle.name}
                         </Button>
