@@ -119,9 +119,9 @@ const ChristmasTreeWidget = () => (
         }}
       >
         <span className="text-5xl md:text-7xl drop-shadow-2xl filter brightness-110 block" role="img" aria-label="Christmas tree">🎄</span>
-        {/* PagePalette Ornament */}
-        <div className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 w-3 h-3 md:w-5 md:h-5 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] shadow-lg border border-white/20 flex items-center justify-center">
-          <span className="text-[6px] md:text-[10px] font-bold text-white">P</span>
+        {/* PagePalette Logo Ornament */}
+        <div className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] shadow-lg border border-white/20 flex items-center justify-center overflow-hidden">
+          <img src="/logo-full.png" alt="" className="w-3 h-3 md:w-4 md:h-4 object-contain brightness-0 invert" />
         </div>
       </div>
       <style jsx global>{`

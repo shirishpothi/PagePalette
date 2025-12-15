@@ -21,7 +21,7 @@ const STL_OPTIONS = [
     { id: "ferrari", label: "Ferrari", color: "#DC2626", emoji: "🏎️" },
     { id: "mistletoe", label: "Mistletoe", color: "#10B981", emoji: "🌿" },
     { id: "67", label: "67", color: "#6366F1", emoji: "🔥" },
-    { id: "nice", label: "Nice Feeling", color: "#14B8A6", emoji: "😌" },
+    { id: "nice", label: "Anxiety Rocks", color: "#14B8A6", emoji: "🪨" },
     { id: "cools", label: "Cools", color: "#06B6D4", emoji: "😎" },
     { id: "gameover", label: "Game Over", color: "#8B5CF6", emoji: "🎮" },
 ];
@@ -1117,8 +1117,8 @@ export default function OrderPage() {
             {/* Background Noise */}
             <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
 
-            {/* Header - More compact on mobile with safe area */}
-            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0f1115]/95 backdrop-blur-xl border-b border-[#1f1f1f] z-50 px-3 md:px-6 flex items-center justify-between" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+            {/* Header - Glassy with safe area */}
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0f1115]/60 backdrop-blur-xl border-b border-white/5 z-50 px-3 md:px-6 flex items-center justify-between shadow-lg shadow-black/10" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
                 <div className="flex items-center gap-2 md:gap-4">
                     <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
                         <ArrowLeft size={18} className="text-[#888888]" />
