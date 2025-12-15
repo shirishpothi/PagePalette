@@ -110,7 +110,7 @@ export default async function handler(req, res) {
                    <p style="margin: 0 0 10px 0; font-size: 14px;">Please pay <strong>$${totalAmount}</strong> to:</p>
                    <div class="action-value" style="font-family: sans-serif;">Shirish Pothi or Julian Dizon</div>
                    <p style="font-size: 13px; color: #555; margin-top: 15px;">
-                     Find us at school to maximize your karma points! 🌟
+                     Find us at school to collect your notebook and/or pay!
                    </p>
                 `}
              </div>
@@ -129,10 +129,10 @@ export default async function handler(req, res) {
              </div>
           </div>
           
-          <div class="footer">
+           <div class="footer">
              <p>Sent with ❤️ by the PagePalette Team</p>
-             <p>Nexus International School</p>
-          </div>
+             <p>A Junior Achievement Singapore Company: PagePalette • © 2025</p>
+           </div>
         </div>
       </body>
       </html>
