@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 
@@ -10,6 +10,8 @@ export function HoverBorderGradient({
   as: Tag = "button",
   duration = 1,
   clockwise = true,
+  gradientColor = "#4ADE80",
+  intensity = "normal", // "normal" | "strong"
   ...props
 }) {
   const [hovered, setHovered] = useState(false);
@@ -24,17 +26,27 @@ export function HoverBorderGradient({
     return directions[nextIndex];
   };
 
-  // Using the site's green color #4ADE80 for the gradient
-  const movingMap = {
-    TOP: "radial-gradient(20.7% 50% at 50% 0%, #4ADE80 0%, rgba(74, 222, 128, 0) 100%)",
-    LEFT: "radial-gradient(16.6% 43.1% at 0% 50%, #4ADE80 0%, rgba(74, 222, 128, 0) 100%)",
-    BOTTOM: "radial-gradient(20.7% 50% at 50% 100%, #4ADE80 0%, rgba(74, 222, 128, 0) 100%)",
-    RIGHT: "radial-gradient(16.2% 41.2% at 100% 50%, #4ADE80 0%, rgba(74, 222, 128, 0) 100%)",
+  // Convert hex to rgba for gradient
+  const hexToRgba = (hex, alpha = 0) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  // Brighter green highlight on hover
-  const highlight =
-    "radial-gradient(75% 181.16% at 50% 50%, #4ADE80 0%, rgba(74, 222, 128, 0) 100%)";
+  // Dynamic gradient maps based on color and intensity
+  const gradientSize = intensity === "strong" ? { w: "30%", h: "60%" } : { w: "20.7%", h: "50%" };
+  
+  const movingMap = useMemo(() => ({
+    TOP: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 0%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+    LEFT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 0% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+    BOTTOM: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 100%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+    RIGHT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 100% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+  }), [gradientColor, intensity]);
+
+  // Highlight on hover - stronger for "strong" intensity
+  const highlightSize = intensity === "strong" ? "100% 250%" : "75% 181.16%";
+  const highlight = `radial-gradient(${highlightSize} at 50% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`;
 
   useEffect(() => {
     if (!hovered) {
@@ -68,7 +80,7 @@ export function HoverBorderGradient({
           "flex-none inset-0 overflow-hidden absolute z-0 rounded-[inherit]"
         )}
         style={{
-          filter: "blur(2px)",
+          filter: intensity === "strong" ? "blur(3px)" : "blur(2px)",
           position: "absolute",
           width: "100%",
           height: "100%",

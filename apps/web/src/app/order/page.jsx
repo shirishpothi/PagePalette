@@ -406,10 +406,9 @@ export default function OrderPage() {
 
                         <HoverBorderGradient
                             containerClassName="w-full rounded-xl mt-auto"
-                            className={`w-full py-3 text-center font-bold font-montserrat ${bundle.id === 'complete' 
-                                ? "bg-[#4ADE80] text-[#0a0a0a]" 
-                                : "bg-[#1a1a1a] text-white"}`}
-                            duration={bundle.id === 'complete' ? 0.8 : 1.2}
+                            className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                            duration={bundle.id === 'complete' ? 0.6 : 1}
+                            intensity={bundle.id === 'complete' ? "strong" : "normal"}
                         >
                             Select {bundle.name}
                         </HoverBorderGradient>
@@ -615,9 +614,15 @@ export default function OrderPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Button className="w-full" variant="primary" onClick={() => setStep(3)}>
+                            <HoverBorderGradient
+                                containerClassName="w-full rounded-xl"
+                                className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white flex items-center justify-center gap-2"
+                                duration={0.8}
+                                intensity="strong"
+                                onClick={() => setStep(3)}
+                            >
                                 Next: Your Details <ChevronRight size={16} />
-                            </Button>
+                            </HoverBorderGradient>
                             <Button className="w-full" variant="ghost" onClick={() => setStep(1)}>
                                 Back to Bundles
                             </Button>
@@ -812,21 +817,22 @@ export default function OrderPage() {
                     <Button variant="ghost" onClick={() => setStep(2)} className="flex-1" aria-label="Go back to customization">
                         Back
                     </Button>
-                    <Button
-                        variant="primary"
+                    <HoverBorderGradient
+                        containerClassName="flex-[2] rounded-xl"
+                        className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                        duration={0.8}
+                        intensity="strong"
                         onClick={() => {
                             if (validateForm()) {
                                 setStep(4);
                             } else {
-                                // Mark all fields as touched to show errors
                                 setFormTouched({ name: true, email: true, studentName: true, studentEmail: true });
                             }
                         }}
-                        className="flex-[2]"
                         aria-label="Proceed to payment"
                     >
                         Proceed to Payment
-                    </Button>
+                    </HoverBorderGradient>
                 </div>
 
             </div>

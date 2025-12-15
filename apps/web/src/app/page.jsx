@@ -340,16 +340,29 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button asChild variant="primary" size="xl" rightIcon={<ArrowRight size={20} />}>
-                <a href="/order">Pre-Order Now</a>
-              </Button>
+              <HoverBorderGradient
+                as="a"
+                href="/order"
+                containerClassName="rounded-xl"
+                className="px-8 py-3 text-center font-bold font-montserrat bg-[#151515] text-white flex items-center gap-2"
+                duration={0.8}
+                intensity="strong"
+              >
+                Pre-Order Now <ArrowRight size={20} />
+              </HoverBorderGradient>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button asChild variant="secondary" size="xl" className="bg-[#151515] border-[#252525] text-white hover:bg-[#1a1a1a]">
-                {/* Redirected to Order instead of Customize */}
-                <a href="/#features">See Features</a>
-              </Button>
+              <HoverBorderGradient
+                as="a"
+                href="/#features"
+                containerClassName="rounded-xl"
+                className="px-8 py-3 text-center font-bold font-montserrat bg-[#151515] text-white"
+                duration={1.2}
+                gradientColor="#36484d"
+              >
+                See Features
+              </HoverBorderGradient>
             </motion.div>
           </motion.div>
           {/* ... (Rest remains same) */}
@@ -630,8 +643,9 @@ export default function HomePage() {
                   as="a"
                   href={plan.link}
                   containerClassName="w-full rounded-xl"
-                  className={`w-full py-3 text-center font-bold font-montserrat ${plan.highlight ? "bg-[#4ADE80] text-[#0a0a0a]" : "bg-[#151515] text-white"}`}
-                  duration={plan.highlight ? 0.8 : 1.2}
+                  className="w-full py-3 text-center font-bold font-montserrat bg-[#151515] text-white"
+                  duration={plan.highlight ? 0.6 : 1}
+                  intensity={plan.highlight ? "strong" : "normal"}
                 >
                   {plan.cta}
                 </HoverBorderGradient>
@@ -677,9 +691,16 @@ export default function HomePage() {
               whileHover={{ scale: 1.02 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10"
             >
-              <Button asChild variant="primary" size="xl" rightIcon={<ArrowRight size={20} />}>
-                <a href="/order">Pre-Order Now</a>
-              </Button>
+              <HoverBorderGradient
+                as="a"
+                href="/order"
+                containerClassName="rounded-xl"
+                className="px-8 py-3 text-center font-bold font-montserrat bg-[#151515] text-white flex items-center gap-2"
+                duration={0.8}
+                intensity="strong"
+              >
+                Pre-Order Now <ArrowRight size={20} />
+              </HoverBorderGradient>
             </motion.div>
           </div>
         </motion.div>
