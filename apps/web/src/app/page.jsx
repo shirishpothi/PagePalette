@@ -108,32 +108,74 @@ const SnowEffect = () => {
   );
 };
 
-// Simple Tree Widget - Optimized with reduced motion support
+// Christmas Tree Widget with localized snow effect and PagePalette ornament
 const ChristmasTreeWidget = () => (
   <div className="fixed bottom-4 right-4 z-50 pointer-events-none select-none" aria-hidden="true">
-    <div className="relative w-16 h-20 md:w-28 md:h-32">
-      <div 
-        className="relative tree-spin"
-        style={{ 
-          transformStyle: 'preserve-3d'
-        }}
-      >
-        <span className="text-5xl md:text-7xl drop-shadow-2xl filter brightness-110 block" role="img" aria-label="Christmas tree">🎄</span>
-        {/* PagePalette Ornament with Logo */}
-        <div className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] shadow-lg border border-white/20 flex items-center justify-center overflow-hidden p-0.5">
-          <img src="/logo-full.png" alt="" className="w-full h-full object-contain brightness-0 invert" />
-        </div>
+    <div className="relative w-20 h-28 md:w-32 md:h-40">
+      {/* Localized snow effect around the tree */}
+      <div className="absolute inset-0 overflow-hidden rounded-full">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute bg-white rounded-full tree-snow"
+            style={{
+              left: `${10 + (i * 5) % 80}%`,
+              top: -4,
+              width: 2 + (i % 2),
+              height: 2 + (i % 2),
+              opacity: 0.6 + (i % 3) * 0.15,
+              animationDelay: `${(i * 0.3) % 2}s`,
+              animationDuration: `${1.5 + (i % 3) * 0.5}s`,
+            }}
+          />
+        ))}
       </div>
+      
+      {/* Tree with star ornament */}
+      <div className="relative flex flex-col items-center">
+        {/* PagePalette Star Ornament at top */}
+        <div className="relative z-10 -mb-3 md:-mb-4">
+          <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center animate-pulse-slow">
+            <svg viewBox="0 0 24 24" className="w-full h-full drop-shadow-lg" fill="none">
+              <path 
+                d="M12 2L14.09 8.26L20.18 8.27L15.54 12.14L17.63 18.41L12 14.77L6.37 18.41L8.46 12.14L3.82 8.27L9.91 8.26L12 2Z" 
+                fill="url(#starGradient)"
+                stroke="#fff"
+                strokeWidth="0.5"
+              />
+              <defs>
+                <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#4ADE80" />
+                  <stop offset="50%" stopColor="#36484d" />
+                  <stop offset="100%" stopColor="#764134" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        
+        {/* Tree emoji */}
+        <span className="text-5xl md:text-7xl drop-shadow-2xl filter brightness-110 block" role="img" aria-label="Christmas tree">🎄</span>
+      </div>
+      
       <style jsx global>{`
-        @keyframes spinY {
-          0% { transform: rotateY(0deg); }
-          100% { transform: rotateY(360deg); }
+        @keyframes treeFall {
+          0% { transform: translateY(0) translateX(0); opacity: 0.8; }
+          100% { transform: translateY(100px) translateX(5px); opacity: 0; }
         }
-        .tree-spin {
-          animation: spinY 10s linear infinite;
+        .tree-snow {
+          animation: treeFall 2s linear infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .tree-spin { animation: none; }
+          .tree-snow { animation: none; opacity: 0; }
+          .animate-pulse-slow { animation: none; }
         }
       `}</style>
     </div>

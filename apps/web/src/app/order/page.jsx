@@ -1117,8 +1117,8 @@ export default function OrderPage() {
             {/* Background Noise */}
             <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
 
-            {/* Header - More compact on mobile with safe area */}
-            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0a0a0a]/60 backdrop-blur-2xl border-b border-white/5 shadow-lg shadow-black/10 z-50 px-3 md:px-6 flex items-center justify-between" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+            {/* Header - Glassy with enhanced blur */}
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-white/5 backdrop-blur-3xl border-b border-white/10 shadow-xl shadow-black/20 z-50 px-3 md:px-6 flex items-center justify-between" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
                 <div className="flex items-center gap-2 md:gap-4">
                     <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
                         <ArrowLeft size={18} className="text-[#888888]" />
