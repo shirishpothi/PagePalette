@@ -1,8 +1,8 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "react-router",
-  "rewrites": [
-    { "source": "/api/order", "destination": "/api/order" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" }
   ],
   "functions": {
     "api/order.js": {
