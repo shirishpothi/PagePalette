@@ -45,29 +45,95 @@ export default async function handler(req, res) {
 
     // 2. Send confirmation email to customer
     if (customerEmail && process.env.RESEND_API_KEY) {
+      const itemsList = orderData?.Items ? orderData.Items.split(',').map(item => item.trim()) : [];
+      const itemsHtml = itemsList.map(item => `
+        <div class="item-row">
+          <span>${item}</span>
+        </div>
+      `).join('');
+      const totalAmount = orderData?.["Total Amount"] || '0.00';
+      const paymentMethod = orderData?.["Payment Method"];
+
       try {
         await resend.emails.send({
           from: process.env.FROM_EMAIL || 'PagePalette <orders@resend.dev>',
           to: customerEmail,
-          subject: `Order Confirmed - ${orderId}`,
+          subject: `Welcome to PagePalette! (Order #${orderId})`,
           html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f1115; color: white; padding: 40px; border-radius: 16px;">
-              <h1 style="color: #4ADE80; margin-bottom: 24px;">Order Confirmed! 🎉</h1>
-              <p>Hi ${customerName},</p>
-              <p>Thank you for your order! Here are your details:</p>
-              
-              <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; margin: 24px 0;">
-                <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
-                <p style="margin: 8px 0;"><strong>Bundle:</strong> ${orderData?.Bundle || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Items:</strong> ${orderData?.Items || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Total:</strong> $${orderData?.["Total Amount"] || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Payment Method:</strong> ${orderData?.["Payment Method"] || 'N/A'}</p>
-              </div>
-              
-              <p style="color: #888;">Please complete your payment and send a screenshot to <strong style="color: #4ADE80;">shirish.pothi.27@nexus.edu.sg</strong></p>
-              
-              <p style="margin-top: 32px; color: #666; font-size: 14px;">- The PagePalette Team</p>
-            </div>
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Your PagePalette Order!</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f5; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+          .header { background: #0f1115; padding: 40px 20px; text-align: center; }
+          .logo-text { font-family: 'Georgia', serif; font-size: 28px; color: #fff; font-weight: bold; letter-spacing: 1px; }
+          .logo-sub { color: #888; font-size: 14px; margin-top: 5px; }
+          .content { padding: 40px; }
+          .greeting { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; }
+          .message { color: #555; margin-bottom: 30px; font-size: 16px; }
+          .receipt-box { background: #f9f9f9; border: 2px dashed #eee; border-radius: 12px; padding: 25px; margin-bottom: 30px; }
+          .item-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #555; }
+          .total-row { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; font-weight: bold; font-size: 18px; color: #111; }
+          .action-card { background: #fff7ed; border: 1px solid #ffedd5; padding: 25px; border-radius: 12px; text-align: center; }
+          .action-title { font-weight: bold; color: #9a3412; font-size: 18px; margin-bottom: 10px; }
+          .action-value { font-family: monospace; font-size: 20px; font-weight: bold; background: rgba(255,255,255,0.5); padding: 8px 15px; border-radius: 6px; display: inline-block; margin: 10px 0; }
+          .footer { background: #f4f4f5; padding: 30px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+             <div class="logo-text">PagePalette</div>
+             <div class="logo-sub">Order #${orderId}</div>
+          </div>
+          
+          <div class="content">
+             <div class="greeting">Hi ${customerName}! 👋</div>
+             <p class="message">
+               We're so excited you've chosen PagePalette! Your customizable notebook order has been received. 
+               We just need one last thing to get started immediately.
+             </p>
+
+             <div class="action-card">
+                ${paymentMethod === 'PayNow' ? `
+                   <div class="action-title">Pay via PayNow</div>
+                   <p style="margin: 0 0 10px 0; font-size: 14px;">Please PayNow <strong>$${totalAmount}</strong> to:</p>
+                   <div class="action-value">9123 4567</div>
+                   <p style="font-size: 13px; color: #555; margin-top: 15px;">
+                     Please send a screenshot of payment to <strong style="color: #ea580c;">shirish.pothi.27@nexus.edu.sg</strong>
+                   </p>
+                ` : `
+                   <div class="action-title">Pay in Cash</div>
+                   <p style="margin: 0 0 10px 0; font-size: 14px;">Please pay <strong>$${totalAmount}</strong> to:</p>
+                   <div class="action-value" style="font-family: sans-serif;">Shirish Pothi or Julian Dizon</div>
+                   <p style="font-size: 13px; color: #555; margin-top: 15px;">
+                     Find us at school to maximize your karma points! 🌟
+                   </p>
+                `}
+             </div>
+
+             <br>
+
+             <div class="receipt-box">
+                <div style="font-weight: bold; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; color: #888; letter-spacing: 1px;">Your Order Summary</div>
+                ${itemsHtml}
+                <div class="total-row">
+                   <span>Total</span>
+                   <span>$${totalAmount} SGD</span>
+                </div>
+             </div>
+          </div>
+          
+          <div class="footer">
+             <p>Sent with ❤️ by the PagePalette Team</p>
+             <p>Nexus International School</p>
+          </div>
+        </div>
+      </body>
+      </html>
           `
         });
       } catch (emailError) {
