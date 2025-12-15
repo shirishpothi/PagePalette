@@ -59,21 +59,27 @@ const floatVariants = {
 // --- Holiday Components ---
 
 const SnowEffect = () => {
-  // Generate fewer snowflakes for better performance (reduced from 50 to 25)
-  const snowflakes = Array.from({ length: 25 }).map((_, i) => ({
-    left: `${(i * 4) % 100}%`, // Deterministic positioning to avoid hydration issues
-    animationDuration: `${3 + (i % 3)}s`,
-    animationDelay: `${(i % 5) * 0.4}s`,
-    opacity: 0.3 + (i % 3) * 0.2,
+  // Reduced snowflakes for better performance on mobile (12 instead of 25)
+  // Uses CSS animations with will-change for GPU acceleration
+  const snowflakes = Array.from({ length: 12 }).map((_, i) => ({
+    left: `${(i * 8) % 100}%`,
+    animationDuration: `${4 + (i % 3)}s`,
+    animationDelay: `${(i % 4) * 0.5}s`,
+    opacity: 0.25 + (i % 3) * 0.15,
     size: 2 + (i % 3) * 2,
   }));
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden" aria-hidden="true">
+    <div 
+      className="fixed inset-0 pointer-events-none z-50 overflow-hidden" 
+      aria-hidden="true"
+      // Respect user's reduced motion preference
+      style={{ display: 'var(--snow-display, block)' }}
+    >
       {snowflakes.map((flake, i) => (
         <div
           key={i}
-          className="absolute bg-white rounded-full"
+          className="absolute bg-white rounded-full snow-flake"
           style={{
             left: flake.left,
             top: -10,
@@ -82,42 +88,52 @@ const SnowEffect = () => {
             opacity: flake.opacity,
             animation: `fall ${flake.animationDuration} linear infinite`,
             animationDelay: flake.animationDelay,
-            willChange: 'transform',
           }}
         />
       ))}
       <style jsx global>{`
         @keyframes fall {
           0% { transform: translateY(-10vh) translateX(0); }
-          100% { transform: translateY(110vh) translateX(20px); }
+          100% { transform: translateY(110vh) translateX(15px); }
+        }
+        .snow-flake {
+          will-change: transform;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :root { --snow-display: none; }
+          .snow-flake { animation: none !important; }
         }
       `}</style>
     </div>
   );
 };
 
-// Simple Tree Widget - Static (no rotation as it looks 2D)
+// Simple Tree Widget - Optimized with reduced motion support
 const ChristmasTreeWidget = () => (
-  <div className="fixed bottom-4 right-4 z-50 pointer-events-none select-none">
-    <div className="relative w-20 h-24 md:w-28 md:h-32">
-      {/* Slowly rotating tree with ornament */}
+  <div className="fixed bottom-4 right-4 z-50 pointer-events-none select-none" aria-hidden="true">
+    <div className="relative w-16 h-20 md:w-28 md:h-32">
       <div 
-        className="relative"
+        className="relative tree-spin"
         style={{ 
-          animation: 'spinY 8s linear infinite',
           transformStyle: 'preserve-3d'
         }}
       >
-        <span className="text-6xl md:text-7xl drop-shadow-2xl filter brightness-110 block">🎄</span>
+        <span className="text-5xl md:text-7xl drop-shadow-2xl filter brightness-110 block" role="img" aria-label="Christmas tree">🎄</span>
         {/* PagePalette Ornament */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] shadow-lg border border-white/20 flex items-center justify-center">
-          <span className="text-[8px] md:text-[10px] font-bold text-white">P</span>
+        <div className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 w-3 h-3 md:w-5 md:h-5 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] shadow-lg border border-white/20 flex items-center justify-center">
+          <span className="text-[6px] md:text-[10px] font-bold text-white">P</span>
         </div>
       </div>
       <style jsx global>{`
         @keyframes spinY {
           0% { transform: rotateY(0deg); }
           100% { transform: rotateY(360deg); }
+        }
+        .tree-spin {
+          animation: spinY 10s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .tree-spin { animation: none; }
         }
       `}</style>
     </div>

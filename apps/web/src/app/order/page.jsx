@@ -71,6 +71,22 @@ export default function OrderPage() {
     // Let's use Step 15 for "Verification".
 
     const [selectedBundle, setSelectedBundle] = useState(BUNDLES[1]); // Default to Complete
+    
+    // Form validation state
+    const [formErrors, setFormErrors] = useState({});
+    const [formTouched, setFormTouched] = useState({});
+
+    // Handle bundle URL parameter (from homepage pricing cards)
+    useEffect(() => {
+        const bundleParam = searchParams.get('bundle');
+        if (bundleParam) {
+            const bundle = BUNDLES.find(b => b.id === bundleParam);
+            if (bundle) {
+                setSelectedBundle(bundle);
+                setStep(2); // Skip to customization
+            }
+        }
+    }, [searchParams]);
 
     // Check for pre-selected items from URL (Customizer Integration)
     useEffect(() => {
@@ -141,6 +157,7 @@ export default function OrderPage() {
 
     // Order Status
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState(null);
     const [orderId, setOrderId] = useState("");
     const [receiptUrl, setReceiptUrl] = useState(null);
 
@@ -158,6 +175,40 @@ export default function OrderPage() {
     };
 
     const isVerificationComplete = confirmedItems.length === allImportedItems.length && allImportedItems.length > 0;
+
+    // Form validation
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    };
+
+    const validateForm = () => {
+        const errors = {};
+        if (!formData.name.trim()) errors.name = "Name is required";
+        if (!formData.email.trim()) {
+            errors.email = "Email is required";
+        } else if (!validateEmail(formData.email)) {
+            errors.email = "Please enter a valid email";
+        }
+        if (role === 'parent') {
+            if (!formData.studentName.trim()) errors.studentName = "Student name is required";
+            if (!formData.studentEmail.trim()) {
+                errors.studentEmail = "Student email is required";
+            } else if (!validateEmail(formData.studentEmail)) {
+                errors.studentEmail = "Please enter a valid email";
+            }
+        }
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleFieldBlur = (field) => {
+        setFormTouched(prev => ({ ...prev, [field]: true }));
+    };
+
+    const getFieldError = (field) => {
+        return formTouched[field] && formErrors[field] ? formErrors[field] : null;
+    };
 
     // --- Calculations ---
 
@@ -208,6 +259,7 @@ export default function OrderPage() {
 
     const handleSubmitOrder = async () => {
         setIsSubmitting(true);
+        setSubmitError(null);
         const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
         setOrderId(newOrderId);
 
@@ -260,8 +312,9 @@ export default function OrderPage() {
             setStep(5);
         } catch (err) {
             console.error("Order Submission Failed", err);
-            // Still proceed to success to not block user
-            setStep(5);
+            setSubmitError("Failed to submit order. Please try again.");
+            // Still proceed to success to not block user after showing error briefly
+            setTimeout(() => setStep(5), 1500);
         } finally {
             setIsSubmitting(false);
         }
@@ -373,41 +426,44 @@ export default function OrderPage() {
 
     const renderStep15_Verification = () => (
         <div className="animate-fade-in-up max-w-3xl mx-auto">
-            <div className="glass p-8 rounded-3xl border border-[#36484d]/30 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-50">
-                    <span className="text-6xl">🧐</span>
+            <div className="glass p-4 md:p-8 rounded-2xl md:rounded-3xl border border-[#36484d]/30 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 md:p-4 opacity-50">
+                    <span className="text-4xl md:text-6xl" role="img" aria-label="Checking">🧐</span>
                 </div>
 
-                <h2 className="text-2xl font-bold text-white mb-2 font-proxima-sera">Wait, let's double check!</h2>
-                <p className="text-[#888] mb-6 font-montserrat">
-                    Please confirm your design by tapping every item you selected.
+                <h2 className="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2 font-proxima-sera">Let's double check!</h2>
+                <p className="text-sm md:text-base text-[#888] mb-4 md:mb-6 font-montserrat">
+                    Tap each item to confirm your selection.
                 </p>
 
-                <div className="flex justify-end mb-4">
+                <div className="flex justify-end mb-3 md:mb-4">
                     <button
                         onClick={confirmAll}
-                        className="text-xs text-[#4ADE80] underline hover:text-white transition-colors"
+                        className="text-xs text-[#4ADE80] underline hover:text-white transition-colors py-2 px-3"
+                        aria-label="Select all items"
                     >
                         Select All
                     </button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
                     {allImportedItems.map((item, idx) => {
                         const isConfirmed = confirmedItems.includes(item.id);
                         return (
                             <button
                                 key={`${item.id}-${idx}`}
                                 onClick={() => toggleConfirmation(item.id)}
-                                className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${isConfirmed
-                                    ? "bg-[#4ADE80]/10 border-[#4ADE80] scale-[1.02] shadow-[0_0_15px_rgba(74,222,128,0.2)]"
+                                aria-pressed={isConfirmed}
+                                aria-label={`${item.label} - ${isConfirmed ? 'confirmed' : 'tap to confirm'}`}
+                                className={`relative p-2 md:p-4 rounded-xl border-2 transition-all duration-200 min-h-[80px] md:min-h-[100px] active:scale-95 ${isConfirmed
+                                    ? "bg-[#4ADE80]/10 border-[#4ADE80] shadow-[0_0_15px_rgba(74,222,128,0.2)]"
                                     : "bg-[#151515] border-[#333] opacity-60 hover:opacity-100"
                                     }`}
                             >
-                                <div className="text-4xl mb-2 filter drop-shadow-md">{item.emoji}</div>
-                                <div className="text-sm font-bold text-white leading-tight">{item.label}</div>
+                                <div className="text-2xl md:text-4xl mb-1 md:mb-2 filter drop-shadow-md">{item.emoji}</div>
+                                <div className="text-[10px] md:text-sm font-bold text-white leading-tight">{item.label}</div>
                                 {isConfirmed && (
-                                    <div className="absolute top-2 right-2 w-5 h-5 bg-[#4ADE80] rounded-full flex items-center justify-center">
+                                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-4 h-4 md:w-5 md:h-5 bg-[#4ADE80] rounded-full flex items-center justify-center">
                                         <Check size={12} className="text-black" />
                                     </div>
                                 )}
@@ -615,29 +671,43 @@ export default function OrderPage() {
                     {/* Common Fields */}
                     <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-[#666] uppercase">
-                                {role === 'parent' ? "Parent Name" : "Name"}
+                            <label htmlFor="name" className="text-xs font-bold text-[#666] uppercase">
+                                {role === 'parent' ? "Parent Name" : "Name"} <span className="text-red-400">*</span>
                             </label>
                             <input
+                                id="name"
                                 required
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3.5 text-base focus:border-[#4ADE80] outline-none text-white"
+                                onBlur={() => handleFieldBlur('name')}
+                                className={`w-full bg-[#151515] border rounded-xl px-4 py-3.5 text-base outline-none text-white transition-colors ${getFieldError('name') ? 'border-red-400 focus:border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
                                 placeholder="Full Name"
+                                aria-invalid={!!getFieldError('name')}
+                                aria-describedby={getFieldError('name') ? 'name-error' : undefined}
                             />
+                            {getFieldError('name') && (
+                                <p id="name-error" className="text-xs text-red-400 mt-1">{getFieldError('name')}</p>
+                            )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-[#666] uppercase">
-                                {role === 'parent' ? "Parent Email" : "Email"}
+                            <label htmlFor="email" className="text-xs font-bold text-[#666] uppercase">
+                                {role === 'parent' ? "Parent Email" : "Email"} <span className="text-red-400">*</span>
                             </label>
                             <input
+                                id="email"
                                 required
                                 type="email"
                                 value={formData.email}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3.5 text-base focus:border-[#4ADE80] outline-none text-white"
-                                placeholder="nexus.edu.sg address"
+                                onBlur={() => handleFieldBlur('email')}
+                                className={`w-full bg-[#151515] border rounded-xl px-4 py-3.5 text-base outline-none text-white transition-colors ${getFieldError('email') ? 'border-red-400 focus:border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
+                                placeholder="your.email@nexus.edu.sg"
+                                aria-invalid={!!getFieldError('email')}
+                                aria-describedby={getFieldError('email') ? 'email-error' : undefined}
                             />
+                            {getFieldError('email') && (
+                                <p id="email-error" className="text-xs text-red-400 mt-1">{getFieldError('email')}</p>
+                            )}
                         </div>
                     </div>
 
@@ -645,25 +715,35 @@ export default function OrderPage() {
                     {role === 'parent' && (
                         <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-[#252525]">
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#666] uppercase">Student Name</label>
+                                <label htmlFor="studentName" className="text-xs font-bold text-[#666] uppercase">Student Name <span className="text-red-400">*</span></label>
                                 <input
+                                    id="studentName"
                                     required
                                     value={formData.studentName}
                                     onChange={e => setFormData({ ...formData, studentName: e.target.value })}
-                                    className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                    onBlur={() => handleFieldBlur('studentName')}
+                                    className={`w-full bg-[#151515] border rounded-xl px-4 py-3.5 text-base outline-none text-white transition-colors ${getFieldError('studentName') ? 'border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
                                     placeholder="Child's Name"
                                 />
+                                {getFieldError('studentName') && (
+                                    <p className="text-xs text-red-400 mt-1">{getFieldError('studentName')}</p>
+                                )}
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#666] uppercase">Student Email</label>
+                                <label htmlFor="studentEmail" className="text-xs font-bold text-[#666] uppercase">Student Email <span className="text-red-400">*</span></label>
                                 <input
+                                    id="studentEmail"
                                     required
                                     type="email"
                                     value={formData.studentEmail}
                                     onChange={e => setFormData({ ...formData, studentEmail: e.target.value })}
-                                    className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                    onBlur={() => handleFieldBlur('studentEmail')}
+                                    className={`w-full bg-[#151515] border rounded-xl px-4 py-3.5 text-base outline-none text-white transition-colors ${getFieldError('studentEmail') ? 'border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
                                     placeholder="Child's school email"
                                 />
+                                {getFieldError('studentEmail') && (
+                                    <p className="text-xs text-red-400 mt-1">{getFieldError('studentEmail')}</p>
+                                )}
                             </div>
                         </div>
                     )}
@@ -719,13 +799,22 @@ export default function OrderPage() {
                     )}
                 </div>
 
-                <div className="pt-4 flex gap-4">
-                    <Button variant="ghost" onClick={() => setStep(2)} className="flex-1">Back</Button>
+                <div className="pt-4 flex gap-3 md:gap-4">
+                    <Button variant="ghost" onClick={() => setStep(2)} className="flex-1" aria-label="Go back to customization">
+                        Back
+                    </Button>
                     <Button
                         variant="primary"
-                        onClick={() => setStep(4)}
+                        onClick={() => {
+                            if (validateForm()) {
+                                setStep(4);
+                            } else {
+                                // Mark all fields as touched to show errors
+                                setFormTouched({ name: true, email: true, studentName: true, studentEmail: true });
+                            }
+                        }}
                         className="flex-[2]"
-                        disabled={!formData.name || !formData.email}
+                        aria-label="Proceed to payment"
                     >
                         Proceed to Payment
                     </Button>
@@ -834,11 +923,32 @@ export default function OrderPage() {
                         </div>
 
                         <div className="space-y-2 md:space-y-3">
-                            <Button className="w-full" size="lg" variant="primary" onClick={handleSubmitOrder} disabled={isSubmitting}>
-                                {isSubmitting ? "Processing..." : "Confirm & Pay"}
-                                {!isSubmitting && <ArrowRight size={16} />}
+                            {submitError && (
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center mb-2">
+                                    {submitError}
+                                </div>
+                            )}
+                            <Button 
+                                className="w-full" 
+                                size="lg" 
+                                variant="primary" 
+                                onClick={handleSubmitOrder} 
+                                disabled={isSubmitting}
+                                aria-busy={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>Confirm & Pay <ArrowRight size={16} /></>
+                                )}
                             </Button>
-                            <Button className="w-full" variant="ghost" size="sm" onClick={() => setStep(3)}>
+                            <Button className="w-full" variant="ghost" size="sm" onClick={() => setStep(3)} aria-label="Go back to details">
                                 Back to Details
                             </Button>
                         </div>
@@ -854,137 +964,137 @@ export default function OrderPage() {
 
     const renderStep5_Receipt = () => (
         <div className="max-w-3xl mx-auto animate-fade-in-up text-center">
-            <div className="w-20 h-20 bg-[#4ADE80] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#4ADE80]/30">
-                <Check size={40} className="text-[#0a0a0a]" />
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-[#4ADE80] rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl shadow-[#4ADE80]/30">
+                <Check size={32} className="text-[#0a0a0a]" />
             </div>
 
-            <h2 className="text-4xl font-bold text-white font-proxima-sera mb-4">Order Placed!</h2>
-            <p className="text-[#CCCCCC] mb-12 max-w-lg mx-auto">
-                Your order has been recorded. Please complete your payment and send a screenshot to the email below to finalize.
+            <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">Order Placed!</h2>
+            <p className="text-sm md:text-base text-[#CCCCCC] mb-6 md:mb-12 max-w-lg mx-auto px-2">
+                Complete your payment and send a screenshot to finalize your order.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-8 text-left">
-                <div className="space-y-6">
-                    <h3 className="font-bold text-white border-b border-[#252525] pb-2">What's Next?</h3>
+            <div className="grid md:grid-cols-2 gap-4 md:gap-8 text-left">
+                <div className="space-y-4 md:space-y-6">
+                    <h3 className="font-bold text-white border-b border-[#252525] pb-2 text-sm md:text-base">What's Next?</h3>
 
                     {paymentMethod === 'paynow' ? (
-                        <div className="bg-[#151515] p-6 rounded-2xl border border-[#252525]">
-                            <div className="text-sm text-[#888888] mb-1">Send proof of payment to:</div>
-                            <div className="font-mono text-[#4ADE80] text-sm break-all mb-4">shirish.pothi.27@nexus.edu.sg</div>
+                        <div className="bg-[#151515] p-4 md:p-6 rounded-2xl border border-[#252525]">
+                            <div className="text-xs md:text-sm text-[#888888] mb-1">Send proof of payment to:</div>
+                            <div className="font-mono text-[#4ADE80] text-xs md:text-sm break-all mb-3 md:mb-4">shirish.pothi.27@nexus.edu.sg</div>
 
-                            <p className="text-xs text-[#666]">
+                            <p className="text-[10px] md:text-xs text-[#666]">
                                 or julian.dizon.27@nexus.edu.sg
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-[#151515] p-6 rounded-2xl border border-[#252525]">
-                            <p className="text-white font-medium mb-2">Meet up for Cash Payment</p>
-                            <p className="text-sm text-[#888888]">
-                                Find Shirish or Julian at school to pay. Your order is reserved.
+                        <div className="bg-[#151515] p-4 md:p-6 rounded-2xl border border-[#252525]">
+                            <p className="text-white font-medium mb-2 text-sm md:text-base">Meet up for Cash Payment</p>
+                            <p className="text-xs md:text-sm text-[#888888]">
+                                Find Shirish or Julian at school to pay.
                             </p>
                         </div>
                     )}
 
-                    <div className="flex gap-4">
-                        <Button onClick={() => navigate("/")} variant="secondary" className="flex-1 bg-[#151515]">
-                            <Home size={16} className="mr-2" /> Return Home
+                    <div className="flex gap-2 md:gap-4">
+                        <Button onClick={() => navigate("/")} variant="secondary" size="sm" className="flex-1 bg-[#151515] text-xs md:text-sm" aria-label="Return to home page">
+                            <Home size={14} className="mr-1 md:mr-2" /> Home
                         </Button>
-                        <Button onClick={() => navigate("/about")} variant="secondary" className="flex-1 bg-[#151515]">
-                            <BookOpen size={16} className="mr-2" /> Our Story
+                        <Button onClick={() => navigate("/about")} variant="secondary" size="sm" className="flex-1 bg-[#151515] text-xs md:text-sm" aria-label="Read our story">
+                            <BookOpen size={14} className="mr-1 md:mr-2" /> Our Story
                         </Button>
                     </div>
                 </div>
 
                 <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-white">Digital Receipt</h3>
-                        <button onClick={handleDownloadReceipt} className="text-xs text-[#4ADE80] flex items-center gap-1 hover:underline">
+                    <div className="flex justify-between items-center mb-3 md:mb-4">
+                        <h3 className="font-bold text-white text-sm md:text-base">Digital Receipt</h3>
+                        <button onClick={handleDownloadReceipt} className="text-xs text-[#4ADE80] flex items-center gap-1 hover:underline py-2" aria-label="Download receipt as image">
                             <Download size={12} /> Download
                         </button>
                     </div>
 
-                    <div className="relative">
-                        {/* Spiral Notebook Receipt */}
+                    {/* Simple mobile receipt - hide spiral on small screens */}
+                    <div className="relative overflow-hidden rounded-xl">
                         <div
                             ref={receiptRef}
-                            className="relative bg-[#fff9ea] text-[#2c3e50] p-0 font-handwriting shadow-2xl rounded-r-lg"
+                            className="relative bg-[#fff9ea] text-[#2c3e50] font-handwriting shadow-2xl rounded-lg md:rounded-r-lg"
                             style={{
-                                minHeight: '500px',
+                                minHeight: '400px',
                                 fontFamily: "'Indie Flower', 'Comic Sans MS', cursive",
-                                borderRadius: '4px 12px 12px 4px',
+                                borderRadius: '8px',
                                 background: 'linear-gradient(to bottom, #fff9ea 0%, #fff9ea 100%)',
                                 boxShadow: '5px 5px 15px rgba(0,0,0,0.3)'
                             }}
                         >
-                            {/* Spiral Binding Holes */}
-                            <div className="absolute left-0 top-0 bottom-0 w-8 bg-[#e6dbbf] border-r border-[#d1c4a5] flex flex-col justify-evenly py-4 z-10">
-                                {Array.from({ length: 12 }).map((_, i) => (
+                            {/* Spiral Binding Holes - Hidden on mobile for cleaner look */}
+                            <div className="hidden md:flex absolute left-0 top-0 bottom-0 w-8 bg-[#e6dbbf] border-r border-[#d1c4a5] flex-col justify-evenly py-4 z-10">
+                                {Array.from({ length: 10 }).map((_, i) => (
                                     <div key={i} className="w-4 h-4 rounded-full bg-[#111] mx-auto opacity-80" style={{ background: 'radial-gradient(circle at 30% 30%, #444, #000)' }}></div>
                                 ))}
                             </div>
 
-                            {/* Spiral Rings - CSS representation */}
-                            <div className="absolute left-[-6px] top-0 bottom-0 w-8 flex flex-col justify-evenly py-4 pointer-events-none z-20">
-                                {Array.from({ length: 12 }).map((_, i) => (
+                            {/* Spiral Rings - Hidden on mobile */}
+                            <div className="hidden md:flex absolute left-[-6px] top-0 bottom-0 w-8 flex-col justify-evenly py-4 pointer-events-none z-20">
+                                {Array.from({ length: 10 }).map((_, i) => (
                                     <div key={i} className="w-8 h-2 bg-[#888] rounded-full transform rotate-[-15deg] shadow-sm ml-1" style={{ background: 'linear-gradient(to bottom, #ccc, #666, #ccc)' }}></div>
                                 ))}
                             </div>
 
                             {/* Page Content Area (Lined Paper) */}
                             <div
-                                className="pl-12 pr-6 py-8 h-full"
+                                className="px-4 md:pl-12 md:pr-6 py-6 md:py-8 h-full"
                                 style={{
-                                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #94a3b8 31px, #94a3b8 32px)',
+                                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #94a3b8 27px, #94a3b8 28px)',
                                     backgroundPosition: '0 8px'
                                 }}
                             >
-                                {/* Red Margin Line */}
-                                <div className="absolute left-10 top-0 bottom-0 w-[1px] bg-[#ef4444] opacity-50 h-full"></div>
+                                {/* Red Margin Line - Only on desktop */}
+                                <div className="hidden md:block absolute left-10 top-0 bottom-0 w-[1px] bg-[#ef4444] opacity-50 h-full"></div>
 
-                                <div className="text-center mb-6 pt-2">
-                                    <h2 className="text-3xl font-bold text-[#1e293b]" style={{ fontFamily: 'serif' }}>PagePalette</h2>
-                                    <div className="text-xs text-[#64748b]">Est. 2025 • Nexus School</div>
+                                <div className="text-center mb-4 md:mb-6 pt-2">
+                                    <h2 className="text-2xl md:text-3xl font-bold text-[#1e293b]" style={{ fontFamily: 'serif' }}>PagePalette</h2>
+                                    <div className="text-[10px] md:text-xs text-[#64748b]">Est. 2025 • Nexus School</div>
                                 </div>
 
-                                <div className="space-y-4 text-sm font-medium relative z-10" style={{ lineHeight: '32px' }}>
-                                    <div className="flex justify-between border-b border-[#2c3e50]/20 pb-1">
+                                <div className="space-y-3 md:space-y-4 text-xs md:text-sm font-medium relative z-10" style={{ lineHeight: '28px' }}>
+                                    <div className="flex justify-between border-b border-[#2c3e50]/20 pb-1 text-[11px] md:text-sm">
                                         <span>Order #: <strong>{orderId}</strong></span>
                                         <span>{format(new Date(), "MMM dd")}</span>
                                     </div>
 
-                                    <div>
-                                        Hey <strong>{role === 'parent' ? formData.studentName : formData.name}</strong>, thanks for ordering!
+                                    <div className="text-xs md:text-sm">
+                                        Hey <strong>{role === 'parent' ? formData.studentName : formData.name}</strong>, thanks!
                                     </div>
 
-                                    <div className="pt-2">
+                                    <div className="pt-2 text-xs md:text-sm">
                                         <div className="flex justify-between items-baseline underline decoration-2 decoration-sky-200">
-                                            <span>{selectedBundle.name}</span>
-                                            <span>${selectedBundle.price}</span>
+                                            <span className="truncate mr-2">{selectedBundle.name}</span>
+                                            <span className="flex-shrink-0">${selectedBundle.price}</span>
                                         </div>
                                         {extraSelections.map(e => (
-                                            <div key={e.id} className="flex justify-between items-baseline text-[#64748b]">
-                                                <span className="pl-4">+ {e.label}</span>
-                                                <span>$3</span>
+                                            <div key={e.id} className="flex justify-between items-baseline text-[#64748b] text-[10px] md:text-xs">
+                                                <span className="pl-2 md:pl-4 truncate mr-2">+ {e.label}</span>
+                                                <span className="flex-shrink-0">$3</span>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <div className="flex justify-between items-center text-xl font-bold text-[#1e293b] pt-4 border-t-2 border-[#1e293b] mt-4" style={{ lineHeight: '1.2' }}>
+                                    <div className="flex justify-between items-center text-lg md:text-xl font-bold text-[#1e293b] pt-3 md:pt-4 border-t-2 border-[#1e293b] mt-3 md:mt-4\" style={{ lineHeight: '1.2' }}>
                                         <span>TOTAL</span>
                                         <div className="bg-[#fef3c7] px-2 py-1 transform rotate-[-2deg] shadow-sm border border-[#f59e0b]">${currentTotal}</div>
                                     </div>
 
-                                    <div className="text-center pt-8 text-[#64748b] text-xs leading-tight">
+                                    <div className="text-center pt-4 md:pt-8 text-[#64748b] text-[10px] md:text-xs leading-tight">
                                         <p>Payment: {paymentMethod === 'paynow' ? 'PayNow' : 'Cash'}</p>
-                                        <p className="mt-2">"An idea that is not dangerous is unworthy of being called an idea at all."</p>
-                                        <p className="text-[10px] mt-1">— Oscar Wilde</p>
-                                        <div className="mt-2 text-[10px] uppercase tracking-widest">--- End of Receipt ---</div>
+                                        <p className="mt-2 hidden md:block">"An idea that is not dangerous is unworthy of being called an idea at all."</p>
+                                        <p className="text-[9px] mt-1 hidden md:block">— Oscar Wilde</p>
+                                        <div className="mt-2 text-[9px] md:text-[10px] uppercase tracking-widest">--- End of Receipt ---</div>
                                     </div>
                                 </div>
 
-                                {/* Doodle / Sticker */}
-                                <div className="absolute bottom-10 right-8 transform rotate-[-10deg] opacity-80 pointer-events-none">
-                                    <div className="border-4 border-[#22c55e] rounded-full p-2 w-20 h-20 flex items-center justify-center text-[#22c55e] font-black text-xs uppercase text-center bg-white/50 backdrop-blur-sm">
+                                {/* Doodle / Sticker - Smaller on mobile */}
+                                <div className="absolute bottom-4 right-4 md:bottom-10 md:right-8 transform rotate-[-10deg] opacity-80 pointer-events-none">
+                                    <div className="border-3 md:border-4 border-[#22c55e] rounded-full p-1 md:p-2 w-14 h-14 md:w-20 md:h-20 flex items-center justify-center text-[#22c55e] font-black text-[8px] md:text-xs uppercase text-center bg-white/50 backdrop-blur-sm">
                                         Verified Order
                                     </div>
                                 </div>
