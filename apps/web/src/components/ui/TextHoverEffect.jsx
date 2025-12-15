@@ -53,10 +53,10 @@ export const TextHoverEffect = ({
           {hovered && (
             <>
               <stop offset="0%" stopColor="#4ADE80" />
-              <stop offset="25%" stopColor="#36484d" />
-              <stop offset="50%" stopColor="#764134" />
-              <stop offset="75%" stopColor="#4ADE80" />
-              <stop offset="100%" stopColor="#36484d" />
+              <stop offset="25%" stopColor="#22c55e" />
+              <stop offset="50%" stopColor="#4ADE80" />
+              <stop offset="75%" stopColor="#36484d" />
+              <stop offset="100%" stopColor="#4ADE80" />
             </>
           )}
         </linearGradient>
@@ -64,7 +64,7 @@ export const TextHoverEffect = ({
         <motion.radialGradient
           id="revealMask"
           gradientUnits="userSpaceOnUse"
-          r="35%"
+          r="40%"
           initial={{ cx: "50%", cy: "50%" }}
           animate={maskPosition}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}
@@ -82,24 +82,37 @@ export const TextHoverEffect = ({
           />
         </mask>
       </defs>
+      {/* Base visible text - always visible with subtle stroke */}
       <text
         x="50%"
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
         strokeWidth="0.5"
-        className="fill-transparent stroke-[#4a4a4a] font-proxima-sera text-7xl font-bold"
-        style={{ opacity: hovered ? 0.9 : 0 }}
+        className="fill-transparent stroke-[#555555] font-proxima-sera text-7xl font-bold"
       >
         {text}
       </text>
+      {/* Hover glow background */}
+      <text
+        x="50%"
+        y="50%"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        strokeWidth="0.8"
+        className="fill-transparent stroke-[#4ADE80] font-proxima-sera text-7xl font-bold"
+        style={{ opacity: hovered ? 0.3 : 0, transition: 'opacity 0.3s ease' }}
+      >
+        {text}
+      </text>
+      {/* Animated stroke draw */}
       <motion.text
         x="50%"
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
         strokeWidth="0.5"
-        className="fill-transparent stroke-[#4a4a4a] font-proxima-sera text-7xl font-bold"
+        className="fill-transparent stroke-[#666666] font-proxima-sera text-7xl font-bold"
         initial={{ strokeDashoffset: 1000, strokeDasharray: 1000 }}
         animate={{
           strokeDashoffset: 0,
@@ -112,13 +125,14 @@ export const TextHoverEffect = ({
       >
         {text}
       </motion.text>
+      {/* Gradient reveal on hover */}
       <text
         x="50%"
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
         stroke="url(#textGradient)"
-        strokeWidth="0.3"
+        strokeWidth="0.6"
         mask="url(#textMask)"
         className="fill-transparent font-proxima-sera text-7xl font-bold"
       >
