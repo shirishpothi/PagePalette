@@ -77,7 +77,15 @@ export default function AboutPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
+            {/* Skip to main content for accessibility */}
+            <a 
+                href="#main-content" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-[#4ADE80] focus:text-black focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold"
+            >
+                Skip to main content
+            </a>
+            
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#36484d]/10 rounded-full blur-3xl" />
@@ -85,12 +93,12 @@ export default function AboutPage() {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
             </div>
 
-            {/* Header */}
-            <header className="fixed top-0 left-0 right-0 h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]">
-                <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+            {/* Header - Mobile responsive */}
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]">
+                <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6\">
                     <div className="flex items-center gap-3">
                         <a href="/" className="flex items-center gap-3">
-                            <img src="/logo-full.png" alt="PagePalette" className="h-10 w-auto object-contain brightness-0 invert" />
+                            <img src="/logo-full.png" alt="PagePalette" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
                         </a>
                     </div>
 
@@ -108,29 +116,40 @@ export default function AboutPage() {
                         ))}
                     </nav>
 
-                    <Button asChild variant="primary" size="md" rightIcon={<ArrowRight size={16} />}>
+                    {/* Mobile: Quick links */}
+                    <div className="flex md:hidden items-center gap-2">
+                        <a href="/" className="text-xs text-[#888888] hover:text-white px-2 py-1 transition-colors">Home</a>
+                        <a href="/order" className="text-xs text-[#888888] hover:text-white px-2 py-1 transition-colors">Order</a>
+                    </div>
+
+                    <Button asChild variant="primary" size="sm" rightIcon={<ArrowRight size={14} />} className="hidden sm:flex">
                         <a href="/order">Pre-Order Now</a>
+                    </Button>
+                    
+                    {/* Mobile CTA */}
+                    <Button asChild variant="primary" size="sm" className="sm:hidden" rightIcon={<ArrowRight size={12} />}>
+                        <a href="/order">Order</a>
                     </Button>
                 </div>
             </header>
 
-            <main className="pt-32 pb-24">
+            <main id="main-content" className="pt-20 md:pt-32 pb-16 md:pb-24">
                 {/* Intro Section with animations */}
                 <motion.section 
                     initial="hidden"
                     animate="visible"
                     variants={containerVariants}
-                    className="px-6 mb-24 relative z-10"
+                    className="px-4 md:px-6 mb-16 md:mb-24 relative z-10"
                 >
                     <div className="max-w-4xl mx-auto text-center">
                         <motion.div variants={itemVariants}>
-                            <Badge variant="outline" size="lg" className="mb-6 border-[#252525] bg-[#151515]/50 text-[#888888]">
+                            <Badge variant="outline" size="lg" className="mb-4 md:mb-6 border-[#252525] bg-[#151515]/50 text-[#888888]">
                                 <Users size={14} className="text-[#4ADE80]" />
                                 <span className="font-montserrat">Our Story</span>
                             </Badge>
                         </motion.div>
 
-                        <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold text-white mb-8 font-proxima-sera leading-tight">
+                        <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-6 md:mb-8 font-proxima-sera leading-tight">
                             Reimagining the<br />
                             <span className="bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] bg-clip-text text-transparent leading-relaxed py-2 block">
                                 Student Experience
@@ -139,7 +158,7 @@ export default function AboutPage() {
 
                         <motion.div 
                             variants={itemVariants}
-                            className="prose prose-invert prose-lg mx-auto bg-[#0f1115]/80 backdrop-blur-md p-8 md:p-12 rounded-3xl border border-[#1f1f1f] shadow-2xl"
+                            className="prose prose-invert prose-sm md:prose-lg mx-auto bg-[#0f1115]/80 backdrop-blur-md p-5 md:p-8 lg:p-12 rounded-2xl md:rounded-3xl border border-[#1f1f1f] shadow-2xl"
                         >
                             <p className="text-[#AAAAAA] font-montserrat leading-relaxed mb-6">
                                 Our product, <span className="text-white font-semibold">PagePalette</span>, takes inspiration from what makes Crocs unique.
@@ -171,10 +190,10 @@ export default function AboutPage() {
                 </motion.section>
 
                 {/* Image Marquee */}
-                <section className="mb-24 relative overflow-hidden">
-                    <div className="mb-8 text-center">
-                        <h2 className="text-2xl font-bold text-white font-proxima-sera mb-2">Behind the Scenes</h2>
-                        <p className="text-[#666666] font-montserrat">Our journey from concept to creation</p>
+                <section className="mb-16 md:mb-24 relative overflow-hidden">
+                    <div className="mb-6 md:mb-8 text-center px-4">
+                        <h2 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Behind the Scenes</h2>
+                        <p className="text-sm md:text-base text-[#666666] font-montserrat">Our journey from concept to creation</p>
                     </div>
 
                     <div className="relative py-8 bg-[#0f1115] border-y border-[#1f1f1f]">
@@ -203,14 +222,14 @@ export default function AboutPage() {
                     viewport={{ once: true, amount: 0.2 }}
                     variants={fadeInUp}
                     transition={{ duration: 0.6 }}
-                    className="px-6 mb-24 relative"
+                    className="px-4 md:px-6 mb-16 md:mb-24 relative"
                 >
-                    <div className="max-w-6xl mx-auto text-center mb-16">
+                    <div className="max-w-6xl mx-auto text-center mb-10 md:mb-16">
                         <Badge variant="accent" size="lg" className="mb-4 bg-gradient-to-r from-[#36484d] to-[#764134] text-white border-0">
                             <Star size={14} />
                             Community Voices
                         </Badge>
-                        <h2 className="text-4xl font-bold text-white mb-4 font-proxima-sera">What Our School Says</h2>
+                        <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 font-proxima-sera">What Our School Says</h2>
                     </div>
 
                     <div className="relative pb-12 overflow-hidden">
@@ -247,15 +266,15 @@ export default function AboutPage() {
                     viewport={{ once: true }}
                     variants={fadeInUp}
                     transition={{ duration: 0.6 }}
-                    className="px-6 text-center"
+                    className="px-4 md:px-6 text-center"
                 >
-                    <div className="max-w-3xl mx-auto bg-gradient-to-br from-[#151515] to-[#0a0a0a] rounded-3xl border border-[#1f1f1f] p-12 relative overflow-hidden">
+                    <div className="max-w-3xl mx-auto bg-gradient-to-br from-[#151515] to-[#0a0a0a] rounded-2xl md:rounded-3xl border border-[#1f1f1f] p-8 md:p-12 relative overflow-hidden">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-[#4ADE80]/10 blur-3xl rounded-full pointer-events-none" />
 
-                        <h2 className="text-3xl font-bold text-white mb-6 font-proxima-sera relative z-10">
+                        <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 font-proxima-sera relative z-10">
                             Join the Movement
                         </h2>
-                        <p className="text-[#888888] mb-8 font-montserrat relative z-10">
+                        <p className="text-sm md:text-base text-[#888888] mb-6 md:mb-8 font-montserrat relative z-10">
                             Be part of the PagePalette community today.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
@@ -268,7 +287,7 @@ export default function AboutPage() {
             </main>
 
             {/* Footer */}
-            <footer className="relative py-12 px-6 border-t border-[#1f1f1f] mt-24">
+            <footer className="relative py-8 md:py-12 px-4 md:px-6 border-t border-[#1f1f1f] mt-16 md:mt-24">
                 <div className="max-w-6xl mx-auto text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <a href="/" className="inline-block">

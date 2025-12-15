@@ -161,6 +161,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
+      {/* Skip to main content for accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-[#4ADE80] focus:text-black focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold"
+      >
+        Skip to main content
+      </a>
+      
       <SnowEffect />
       <ChristmasTreeWidget />
 
@@ -241,7 +249,7 @@ export default function HomePage() {
       </motion.header>
 
       {/* Hero Section */}
-      <section className="relative pt-20 md:pt-32 pb-12 md:pb-24 px-4 md:px-6 z-10 min-h-[85vh] md:min-h-[90vh] flex items-center justify-center">
+      <section id="main-content" className="relative pt-20 md:pt-32 pb-12 md:pb-24 px-4 md:px-6 z-10 min-h-[85vh] md:min-h-[90vh] flex items-center justify-center">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -552,8 +560,8 @@ export default function HomePage() {
                 key={i}
                 variants={itemVariants}
                 whileHover={{ scale: 1.02, y: -5 }}
-                className={`rounded-2xl border p-6 text-left relative overflow-visible flex flex-col ${plan.highlight
-                  ? "bg-gradient-to-br from-[#36484d] to-[#2a3a40] border-[#4ADE80]/50 transform scale-105 z-10 shadow-2xl shadow-[#4ADE80]/10"
+                className={`rounded-2xl border p-5 md:p-6 text-left relative overflow-visible flex flex-col ${plan.highlight
+                  ? "bg-gradient-to-br from-[#36484d] to-[#2a3a40] border-[#4ADE80]/50 md:scale-105 z-10 shadow-2xl shadow-[#4ADE80]/10"
                   : "bg-[#0f1115] border-[#1f1f1f] hover:border-[#36484d]/50"
                   }`}
               >

@@ -545,15 +545,23 @@ export default function OrderPage() {
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-4">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-4" role="group" aria-label="PagePal selection">
                             {STL_OPTIONS.filter(o => o.id !== 'tree').map(item => {
                                 const status = getSelectionStatus(item);
                                 return (
                                     <button
                                         key={item.id}
                                         onClick={() => toggleSelection(item)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                toggleSelection(item);
+                                            }
+                                        }}
+                                        aria-pressed={status !== 'none'}
+                                        aria-label={`${item.label} - ${status === 'bundle' ? 'Free included' : status === 'extra' ? 'Extra $3' : 'Not selected'}`}
                                         className={`
-                        relative p-2 md:p-4 rounded-xl border text-left transition-all active:scale-95
+                        relative p-2 md:p-4 rounded-xl border text-left transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]
                         ${status === 'bundle' ? 'bg-[#4ADE80]/10 border-[#4ADE80] ring-2 ring-[#4ADE80]/50' :
                                                 status === 'extra' ? 'bg-[#F59E0B]/10 border-[#F59E0B] ring-2 ring-[#F59E0B]/50' :
                                                     'bg-[#0f1115] border-[#252525] hover:border-[#333]'}
@@ -618,23 +626,23 @@ export default function OrderPage() {
                 </div>
             </div>
 
-            {/* Mobile: Fixed bottom bar for navigation */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40">
-                <div className="flex items-center justify-between gap-3">
-                    <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="flex-shrink-0">
+            {/* Mobile: Fixed bottom bar for navigation with safe area */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40\" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
+                <div className="flex items-center justify-between gap-3\">
+                    <Button variant=\"ghost\" size=\"sm\" onClick={() => setStep(1)} className=\"flex-shrink-0\">
                         <ArrowLeft size={16} /> Back
                     </Button>
-                    <div className="text-center">
-                        <div className="text-xs text-[#888888]">{bundleSelections.length + extraSelections.length} selected</div>
-                        <div className="text-lg font-bold text-[#4ADE80]">${currentTotal}</div>
+                    <div className=\"text-center\">
+                        <div className=\"text-xs text-[#888888]\">{bundleSelections.length + extraSelections.length} selected</div>
+                        <div className=\"text-lg font-bold text-[#4ADE80]\">${currentTotal}</div>
                     </div>
-                    <Button variant="primary" size="sm" onClick={() => setStep(3)} className="flex-shrink-0">
+                    <Button variant=\"primary\" size=\"sm\" onClick={() => setStep(3)} className=\"flex-shrink-0\">
                         Continue <ChevronRight size={16} />
                     </Button>
                 </div>
             </div>
-            {/* Spacer for fixed bottom bar on mobile */}
-            <div className="lg:hidden h-20" />
+            {/* Spacer for fixed bottom bar on mobile - account for safe area */}
+            <div className=\"lg:hidden h-24\" />
         </div>
     );
 
@@ -827,9 +835,6 @@ export default function OrderPage() {
 
     const renderStep4_Payment = () => (
         <div className="max-w-4xl mx-auto animate-fade-in-up">
-            {/* --- STEP 15: VERIFICATION (Customizer Flow Only) --- */}
-            {step === 15 && renderStep15_Verification()}
-
             <div className="grid md:grid-cols-[1fr_320px] gap-4 md:gap-8">
                 {/* Left: Methods */}
                 <div className="space-y-4 md:space-y-6">
@@ -1112,8 +1117,8 @@ export default function OrderPage() {
             {/* Background Noise */}
             <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
 
-            {/* Header - More compact on mobile */}
-            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0f1115]/95 backdrop-blur-xl border-b border-[#1f1f1f] z-50 px-3 md:px-6 flex items-center justify-between">
+            {/* Header - More compact on mobile with safe area */}
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0f1115]/95 backdrop-blur-xl border-b border-[#1f1f1f] z-50 px-3 md:px-6 flex items-center justify-between" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
                 <div className="flex items-center gap-2 md:gap-4">
                     <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
                         <ArrowLeft size={18} className="text-[#888888]" />
@@ -1156,6 +1161,7 @@ export default function OrderPage() {
                 {step === 3 && renderStep3_Info()}
                 {step === 4 && renderStep4_Payment()}
                 {step === 5 && renderStep5_Receipt()}
+                {step === 15 && renderStep15_Verification()}
             </div>
         </div>
     );
