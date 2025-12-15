@@ -370,11 +370,16 @@ export default function OrderPage() {
                     >
                         {/* Best Value Badge for Complete Bundle */}
                         {bundle.id === 'complete' && (
-                            <div className="absolute -top-0 -right-0 z-10">
-                                <div className="bg-[#4ADE80] px-3 py-1 md:px-4 md:py-1.5 rounded-bl-xl rounded-tr-2xl">
-                                    <span className="font-bold text-[10px] md:text-xs tracking-wider text-[#0a0a0a] uppercase">
-                                        BEST VALUE
-                                    </span>
+                            <div className="absolute top-0 right-0 z-10 overflow-hidden rounded-bl-xl rounded-tr-2xl">
+                                <div className="relative">
+                                    {/* Animated glow background */}
+                                    <div className="absolute inset-0 bg-[#4ADE80] blur-md opacity-40 animate-max-pulse" />
+                                    {/* Main badge */}
+                                    <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-2.5 py-1 md:px-3.5 md:py-1.5 border-l border-b border-[#4ADE80]/50">
+                                        <span className="font-bold text-[9px] md:text-[11px] tracking-wider uppercase animate-max-shimmer bg-gradient-to-r from-white via-[#4ADE80] to-white bg-[length:200%_100%] bg-clip-text text-transparent inline-block">
+                                            BEST VALUE
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
