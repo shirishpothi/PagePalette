@@ -19,36 +19,28 @@ export const LayoutTextFlip = ({
   }, [words.length, duration]);
 
   return (
-    <>
-      <motion.span
-        layoutId="subtext"
-        className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg font-proxima-sera text-white"
-      >
+    <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+      <span className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg font-proxima-sera text-white">
         {text}
-      </motion.span>
+      </span>
 
-      <motion.span
-        layout
-        className="relative w-fit overflow-hidden rounded-lg border border-[#252525] bg-[#151515] px-4 py-2 font-proxima-sera text-4xl md:text-5xl font-bold tracking-tight text-white shadow-lg shadow-black/20 ring-1 ring-white/5"
-      >
-        <AnimatePresence mode="popLayout">
+      <span className="relative inline-flex items-center rounded-lg border border-[#252525] bg-[#151515] px-4 py-3 font-proxima-sera text-4xl md:text-5xl font-bold tracking-tight shadow-lg shadow-black/20 ring-1 ring-white/5 min-h-[1.4em]">
+        <AnimatePresence mode="wait">
           <motion.span
             key={currentIndex}
-            initial={{ y: -40, filter: "blur(10px)" }}
-            animate={{
-              y: 0,
-              filter: "blur(0px)",
-            }}
-            exit={{ y: 50, filter: "blur(10px)", opacity: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{
-              duration: 0.5,
+              duration: 0.3,
+              ease: "easeInOut",
             }}
-            className={cn("inline-block whitespace-nowrap bg-gradient-to-r from-[#4ADE80] to-[#764134] bg-clip-text text-transparent")}
+            className={cn("inline-block whitespace-nowrap bg-gradient-to-r from-[#4ADE80] to-[#764134] bg-clip-text text-transparent leading-normal")}
           >
             {words[currentIndex]}
           </motion.span>
         </AnimatePresence>
-      </motion.span>
-    </>
+      </span>
+    </div>
   );
 };
