@@ -3,3 +3,4 @@ export { default as Card, CardHeader, CardTitle, CardDescription, CardContent, C
 export { default as Badge } from "./Badge";
 export { HeroHighlight, Highlight } from "./HeroHighlight";
 export { TextHoverEffect } from "./TextHoverEffect";
+export { ContainerTextFlip } from "./ContainerTextFlip";

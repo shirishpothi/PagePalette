@@ -64,7 +64,7 @@ export const TextHoverEffect = ({
         <motion.radialGradient
           id="revealMask"
           gradientUnits="userSpaceOnUse"
-          r="20%"
+          r="35%"
           initial={{ cx: "50%", cy: "50%" }}
           animate={maskPosition}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}
@@ -87,9 +87,9 @@ export const TextHoverEffect = ({
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
-        strokeWidth="0.3"
-        className="fill-transparent stroke-[#252525] font-proxima-sera text-7xl font-bold"
-        style={{ opacity: hovered ? 0.7 : 0 }}
+        strokeWidth="0.5"
+        className="fill-transparent stroke-[#4a4a4a] font-proxima-sera text-7xl font-bold"
+        style={{ opacity: hovered ? 0.9 : 0 }}
       >
         {text}
       </text>
@@ -98,8 +98,8 @@ export const TextHoverEffect = ({
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
-        strokeWidth="0.3"
-        className="fill-transparent stroke-[#252525] font-proxima-sera text-7xl font-bold"
+        strokeWidth="0.5"
+        className="fill-transparent stroke-[#4a4a4a] font-proxima-sera text-7xl font-bold"
         initial={{ strokeDashoffset: 1000, strokeDasharray: 1000 }}
         animate={{
           strokeDashoffset: 0,

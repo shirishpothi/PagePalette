@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Sparkles, Users, Star, Check, Leaf, Recycle, Heart, Quote, Palette, RefreshCw, Gift } from "lucide-react";
-import { Button, Card, Badge, Highlight, TextHoverEffect } from "../components/ui";
+import { Button, Card, Badge, Highlight, TextHoverEffect, ContainerTextFlip } from "../components/ui";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
 
 // Testimonials data - Updated to match About Us data/style
@@ -657,13 +657,25 @@ export default function HomePage() {
             {/* Background glow attached to mouse could be cool, but keeping it simple for now */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-gradient-to-b from-[#36484d]/20 to-transparent blur-3xl group-hover:bg-[#36484d]/30 transition-colors" />
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 font-proxima-sera relative z-10">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 font-proxima-sera relative z-10">
               Ready to Get Your<br />
-              <span className="bg-gradient-to-r from-[#4ADE80] to-[#764134] bg-clip-text text-transparent">
-                PagePalette?
+              <span className="inline-flex items-center justify-center mt-2">
+                <ContainerTextFlip
+                  words={["PagePalette", "Perfect Notebook", "Eco-Style", "Creative Space"]}
+                  descriptions={[
+                    { title: "PagePalette", text: "The revolutionary notebook system that grows with you. Customize, swap, and express yourself like never before." },
+                    { title: "Perfect Notebook", text: "Designed by students, for students. Every detail crafted to enhance your study experience and creativity." },
+                    { title: "Eco-Style", text: "Made from 100% recycled materials. Look good while doing good for the planet." },
+                    { title: "Creative Space", text: "Your notebook, your rules. Mix and match PagePals to create a study companion that's uniquely you." }
+                  ]}
+                  interval={3500}
+                  className=""
+                  textClassName=""
+                />
               </span>
+              <span className="block text-sm text-[#666666] mt-2 font-montserrat font-normal">Click the text above to learn more!</span>
             </h2>
-            <p className="text-xl text-[#888888] mb-10 font-montserrat max-w-xl mx-auto relative z-10">
+            <p className="text-lg md:text-xl text-[#888888] mb-10 font-montserrat max-w-xl mx-auto relative z-10">
               Pre-order now and be among the first to get your customizable notebook.
             </p>
             <motion.div
