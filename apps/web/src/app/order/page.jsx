@@ -56,9 +56,16 @@ export default function OrderPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const receiptRef = useRef(null);
+    const mainContentRef = useRef(null);
 
     // --- State ---
     const [step, setStep] = useState(1); // 1: Bundle, 2: Customs, 3: Info, 4: Payment, 5: Receipt
+
+    // Scroll to top when step changes (fixes mobile scroll issue)
+    useEffect(() => {
+        // Scroll the window to top smoothly when step changes
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [step]);
     // NOTE: If coming from Customizer, we might inject a "Verification" step (Step 1.5 effectively).
     // We'll handle this by using a specific step number, say 15 (between 1 and 2 conceptually, or just redirect the flow).
     // Let's use Step 15 for "Verification".
@@ -136,6 +143,21 @@ export default function OrderPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [orderId, setOrderId] = useState("");
     const [receiptUrl, setReceiptUrl] = useState(null);
+
+    // Verification helpers
+    const toggleConfirmation = (itemId) => {
+        setConfirmedItems(prev => 
+            prev.includes(itemId) 
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
+        );
+    };
+
+    const confirmAll = () => {
+        setConfirmedItems(allImportedItems.map(item => item.id));
+    };
+
+    const isVerificationComplete = confirmedItems.length === allImportedItems.length && allImportedItems.length > 0;
 
     // --- Calculations ---
 
@@ -262,30 +284,30 @@ export default function OrderPage() {
     // --- Render Steps ---
 
     const renderStep1_Bundles = () => (
-        <div className="space-y-6 animate-fade-in-up">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white font-proxima-sera mb-2">Choose Your Bundle</h2>
-                <p className="text-[#888888] font-montserrat mb-4">Select standard or customization package</p>
+        <div className="space-y-4 md:space-y-6 animate-fade-in-up">
+            <div className="text-center mb-4 md:mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Choose Your Bundle</h2>
+                <p className="text-sm md:text-base text-[#888888] font-montserrat mb-3 md:mb-4">Select standard or customization package</p>
                 
-                {/* Social Proof - Simple avatars */}
-                <div className="flex items-center justify-center gap-2 mb-6">
+                {/* Social Proof - Hidden on very small screens for space */}
+                <div className="hidden sm:flex items-center justify-center gap-2 mb-4 md:mb-6">
                     <div className="flex -space-x-2">
                         {[1,2,3,4,5].map((_, i) => (
-                            <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
+                            <div key={i} className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
                         ))}
                     </div>
                 </div>
                 
-                <img src="/logo-full.png" alt="PagePalette" className="h-16 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
+                <img src="/logo-full.png" alt="PagePalette" className="h-12 md:h-16 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
                 {BUNDLES.map(bundle => (
                     <div
                         key={bundle.id}
                         onClick={() => handleBundleSelect(bundle)}
                         className={`
-              relative p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden
+              relative p-5 md:p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
               ${bundle.id === 'complete' 
                   ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
                   : selectedBundle.id === bundle.id
@@ -300,30 +322,29 @@ export default function OrderPage() {
                                     {/* Animated glow background */}
                                     <div className="absolute inset-0 bg-[#4ADE80] blur-lg opacity-40 animate-max-pulse" />
                                     {/* Main badge */}
-                                    <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-4 py-1.5 rounded-bl-xl border-l border-b border-[#4ADE80]/50">
-                                        <span className="font-bold text-sm tracking-wide text-white animate-max-shimmer bg-gradient-to-r from-white via-[#4ADE80] to-white bg-[length:200%_100%] bg-clip-text [-webkit-text-fill-color:transparent] whitespace-nowrap">
+                                    <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-3 md:px-4 py-1 md:py-1.5 rounded-bl-xl border-l border-b border-[#4ADE80]/50">
+                                        <span className="font-bold text-xs md:text-sm tracking-wide text-white animate-max-shimmer bg-gradient-to-r from-white via-[#4ADE80] to-white bg-[length:200%_100%] bg-clip-text [-webkit-text-fill-color:transparent] whitespace-nowrap">
                                             BEST VALUE
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         )}
-                        <h3 className="text-2xl font-bold text-white font-proxima-sera mb-2">{bundle.name}</h3>
-                        
-                        <div className="mb-4">
-                            <span className="text-4xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera">{bundle.name}</h3>
+                            <span className="text-2xl md:text-4xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
                         </div>
 
-                        <ul className="space-y-3 mb-8 flex-1">
+                        <ul className="space-y-2 md:space-y-3 mb-4 md:mb-8 flex-1">
                             {bundle.includes.map((item, i) => (
-                                <li key={i} className="flex items-start gap-3 text-sm text-[#CCCCCC] font-montserrat">
-                                    <Check size={16} className="mt-0.5 text-[#4ADE80] flex-shrink-0" />
+                                <li key={i} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#CCCCCC] font-montserrat">
+                                    <Check size={14} className="mt-0.5 text-[#4ADE80] flex-shrink-0" />
                                     {item}
                                 </li>
                             ))}
                             {bundle.id === 'complete' && (
-                                <li className="flex items-start gap-3 text-sm text-[#4ADE80] font-montserrat font-bold">
-                                    <Check size={16} className="mt-0.5 text-[#4ADE80] flex-shrink-0" />
+                                <li className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#4ADE80] font-montserrat font-bold">
+                                    <Check size={14} className="mt-0.5 text-[#4ADE80] flex-shrink-0" />
                                     ✨ Save $9 vs buying separately!
                                 </li>
                             )}
@@ -331,6 +352,7 @@ export default function OrderPage() {
 
                         <Button 
                             variant="secondary" 
+                            size="lg"
                             className={`w-full mt-auto ${bundle.id === 'complete' 
                                 ? "bg-[#4ADE80] hover:bg-[#22C55E] text-[#0a0a0a] border-0 font-bold" 
                                 : "bg-[#1a1a1a] border-[#333] group-hover:bg-[#252525]"}`}
@@ -342,8 +364,8 @@ export default function OrderPage() {
             </div>
             
             {/* Minimal eco-friendly indicator */}
-            <div className="mt-8 flex items-center justify-center gap-2 text-sm text-[#666] font-montserrat">
-                <Leaf size={16} className="text-[#4ADE80]" />
+            <div className="mt-4 md:mt-8 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
+                <Leaf size={14} className="text-[#4ADE80]" />
                 <span>Eco-Friendly Materials</span>
             </div>
         </div>
@@ -416,42 +438,57 @@ export default function OrderPage() {
     );
 
     const renderStep2_Selection = () => (
-        <div className="space-y-6 animate-fade-in-up">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white font-proxima-sera mb-2">Customize Your Palette</h2>
-                <p className="text-[#888888] font-montserrat">
+        <div className="space-y-4 md:space-y-6 animate-fade-in-up">
+            <div className="text-center mb-4 md:mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Customize Your Palette</h2>
+                <p className="text-sm md:text-base text-[#888888] font-montserrat">
                     {selectedBundle.freeCount > 0
                         ? `Choose your ${selectedBundle.freeCount} included PagePals`
                         : "Add extra PagePals to your order"}
                 </p>
             </div>
 
-            <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_300px] gap-8">
-                {/* Left: Options Grid */}
-                <div className="space-y-8">
-                    {/* Free Tree Notice */}
-                    <div className="bg-[#36484d]/10 border border-[#36484d]/30 p-4 rounded-xl flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#22C55E] rounded-lg flex items-center justify-center font-bold text-[#0a0a0a]">
-                            Tree
-                        </div>
+            {/* Mobile: Summary card at top for visibility */}
+            <div className="lg:hidden">
+                <Card className="p-4 bg-[#0f1115] border-[#1f1f1f] mb-4">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <h4 className="font-bold text-white">Tree PagePal</h4>
-                            <p className="text-sm text-[#4ADE80]">Included for FREE with every order!</p>
+                            <span className="text-sm text-[#888888]">{selectedBundle.name}</span>
+                            <div className="text-xl font-bold text-[#4ADE80]">${currentTotal}</div>
                         </div>
-                        <Check size={24} className="ml-auto text-[#4ADE80]" />
+                        <Button variant="primary" size="sm" onClick={() => setStep(3)}>
+                            Continue <ChevronRight size={14} />
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+
+            <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_300px] gap-4 md:gap-8">
+                {/* Left: Options Grid */}
+                <div className="space-y-4 md:space-y-8">
+                    {/* Free Tree Notice - More compact on mobile */}
+                    <div className="bg-[#36484d]/10 border border-[#36484d]/30 p-3 md:p-4 rounded-xl flex items-center gap-3 md:gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-[#22C55E] rounded-lg flex items-center justify-center text-xl md:text-2xl">
+                            🌲
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-white text-sm md:text-base">Tree PagePal</h4>
+                            <p className="text-xs md:text-sm text-[#4ADE80]">FREE with every order!</p>
+                        </div>
+                        <Check size={20} className="text-[#4ADE80] flex-shrink-0" />
                     </div>
 
                     <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-white">Full Collection</h3>
-                            <span className="text-sm text-[#888888]">
+                        <div className="flex justify-between items-center mb-3 md:mb-4">
+                            <h3 className="text-base md:text-lg font-bold text-white">Full Collection</h3>
+                            <span className="text-xs md:text-sm text-[#888888] bg-[#1a1a1a] px-2 py-1 rounded-full">
                                 {selectedBundle.freeCount > 0 && bundleSelections.length < selectedBundle.freeCount
-                                    ? `Pick ${selectedBundle.freeCount - bundleSelections.length} more free`
-                                    : "Adding extras ($3/ea)"}
+                                    ? `Pick ${selectedBundle.freeCount - bundleSelections.length} more`
+                                    : "Extras +$3 each"}
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2 md:gap-4">
                             {STL_OPTIONS.filter(o => o.id !== 'tree').map(item => {
                                 const status = getSelectionStatus(item);
                                 return (
@@ -459,23 +496,29 @@ export default function OrderPage() {
                                         key={item.id}
                                         onClick={() => toggleSelection(item)}
                                         className={`
-                        relative p-4 rounded-xl border text-left transition-all hover:scale-[1.02]
-                        ${status === 'bundle' ? 'bg-[#4ADE80]/10 border-[#4ADE80]' :
-                                                status === 'extra' ? 'bg-[#F59E0B]/10 border-[#F59E0B]' :
+                        relative p-2 md:p-4 rounded-xl border text-left transition-all active:scale-95
+                        ${status === 'bundle' ? 'bg-[#4ADE80]/10 border-[#4ADE80] ring-2 ring-[#4ADE80]/50' :
+                                                status === 'extra' ? 'bg-[#F59E0B]/10 border-[#F59E0B] ring-2 ring-[#F59E0B]/50' :
                                                     'bg-[#0f1115] border-[#252525] hover:border-[#333]'}
                       `}
                                     >
+                                        {/* Selection indicator */}
+                                        {status !== 'none' && (
+                                            <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${status === 'bundle' ? 'bg-[#4ADE80] text-black' : 'bg-[#F59E0B] text-black'}`}>
+                                                <Check size={12} />
+                                            </div>
+                                        )}
                                         <div
-                                            className="w-full aspect-square rounded-lg mb-3 shadow-lg flex items-center justify-center text-4xl bg-[#1a1a1a]"
-                                            style={{ borderTop: `4px solid ${item.color}` }}
+                                            className="w-full aspect-square rounded-lg mb-1 md:mb-3 shadow-lg flex items-center justify-center text-2xl md:text-4xl bg-[#1a1a1a]"
+                                            style={{ borderTop: `3px solid ${item.color}` }}
                                         >
                                             {item.emoji}
                                         </div>
-                                        <div className="font-semibold text-white text-sm truncate">{item.label}</div>
-                                        <div className="text-xs mt-1">
-                                            {status === 'bundle' && <span className="text-[#4ADE80] font-bold">INCLUDED</span>}
-                                            {status === 'extra' && <span className="text-[#F59E0B] font-bold">+$3.00</span>}
-                                            {status === 'none' && <span className="text-[#666]">{selectedBundle.freeCount > bundleSelections.length ? "Select Free" : "+$3.00"}</span>}
+                                        <div className="font-semibold text-white text-[10px] md:text-sm truncate text-center">{item.label}</div>
+                                        <div className="text-[9px] md:text-xs mt-0.5 md:mt-1 text-center">
+                                            {status === 'bundle' && <span className="text-[#4ADE80] font-bold">FREE</span>}
+                                            {status === 'extra' && <span className="text-[#F59E0B] font-bold">+$3</span>}
+                                            {status === 'none' && <span className="text-[#666]">{selectedBundle.freeCount > bundleSelections.length ? "Free" : "+$3"}</span>}
                                         </div>
                                     </button>
                                 );
@@ -484,8 +527,8 @@ export default function OrderPage() {
                     </div>
                 </div>
 
-                {/* Right: Summary Sticky */}
-                <div className="space-y-6">
+                {/* Right: Summary Sticky - Hidden on mobile (using top card instead) */}
+                <div className="hidden lg:block space-y-6">
                     <Card className="p-6 bg-[#0f1115] border-[#1f1f1f] sticky top-24">
                         <h3 className="font-bold text-white mb-4">Current Selection</h3>
 
@@ -517,20 +560,38 @@ export default function OrderPage() {
                     </Card>
                 </div>
             </div>
+
+            {/* Mobile: Fixed bottom bar for navigation */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40">
+                <div className="flex items-center justify-between gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="flex-shrink-0">
+                        <ArrowLeft size={16} /> Back
+                    </Button>
+                    <div className="text-center">
+                        <div className="text-xs text-[#888888]">{bundleSelections.length + extraSelections.length} selected</div>
+                        <div className="text-lg font-bold text-[#4ADE80]">${currentTotal}</div>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => setStep(3)} className="flex-shrink-0">
+                        Continue <ChevronRight size={16} />
+                    </Button>
+                </div>
+            </div>
+            {/* Spacer for fixed bottom bar on mobile */}
+            <div className="lg:hidden h-20" />
         </div>
     );
 
     const renderStep3_Info = () => (
         <div className="max-w-2xl mx-auto animate-fade-in-up">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white font-proxima-sera mb-2">Your Information</h2>
-                <p className="text-[#888888] font-montserrat">Please provide details for the order</p>
+            <div className="text-center mb-4 md:mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Your Information</h2>
+                <p className="text-sm md:text-base text-[#888888] font-montserrat">Quick details for delivery</p>
             </div>
 
-            <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-6 md:p-8 space-y-8">
+            <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-4 md:p-8 space-y-4 md:space-y-8">
 
-                {/* Role Type */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Role Type - Horizontal on mobile for less scrolling */}
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {[
                         { id: 'student', icon: GraduationCap, label: 'Student' },
                         { id: 'parent', icon: User, label: 'Parent' },
@@ -539,20 +600,20 @@ export default function OrderPage() {
                         <button
                             key={r.id}
                             onClick={() => setRole(r.id)}
-                            className={`py-3 rounded-xl border flex flex-col items-center gap-2 transition-all
+                            className={`py-2 md:py-3 rounded-xl border flex flex-col items-center gap-1 md:gap-2 transition-all active:scale-95
                  ${role === r.id ? 'bg-[#4ADE80]/10 border-[#4ADE80] text-[#4ADE80]' : 'bg-[#151515] border-[#252525] text-[#666] hover:bg-[#1a1a1a]'}
                `}
                         >
-                            <r.icon size={20} />
-                            <span className="text-sm font-medium">{r.label}</span>
+                            <r.icon size={18} />
+                            <span className="text-xs md:text-sm font-medium">{r.label}</span>
                         </button>
                     ))}
                 </div>
 
                 {/* Inputs */}
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                     {/* Common Fields */}
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-[#666] uppercase">
                                 {role === 'parent' ? "Parent Name" : "Name"}
@@ -561,7 +622,7 @@ export default function OrderPage() {
                                 required
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3.5 text-base focus:border-[#4ADE80] outline-none text-white"
                                 placeholder="Full Name"
                             />
                         </div>
@@ -574,7 +635,7 @@ export default function OrderPage() {
                                 type="email"
                                 value={formData.email}
                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3.5 text-base focus:border-[#4ADE80] outline-none text-white"
                                 placeholder="nexus.edu.sg address"
                             />
                         </div>
@@ -675,116 +736,118 @@ export default function OrderPage() {
     );
 
     const renderStep4_Payment = () => (
-        <div className="max-w-4xl mx-auto animate-fade-in-up grid md:grid-cols-[1fr_350px] gap-8">
+        <div className="max-w-4xl mx-auto animate-fade-in-up">
             {/* --- STEP 15: VERIFICATION (Customizer Flow Only) --- */}
             {step === 15 && renderStep15_Verification()}
 
-            {/* Left: Methods */}
-            <div className="space-y-6">
-                <div className="mb-4">
-                    <h2 className="text-3xl font-bold text-white font-proxima-sera">Payment</h2>
-                    <p className="text-[#888888]">Choose a secure payment method</p>
-                </div>
+            <div className="grid md:grid-cols-[1fr_320px] gap-4 md:gap-8">
+                {/* Left: Methods */}
+                <div className="space-y-4 md:space-y-6">
+                    <div className="mb-2 md:mb-4">
+                        <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera">Payment</h2>
+                        <p className="text-sm md:text-base text-[#888888]">Choose a payment method</p>
+                    </div>
 
-                <div className="space-y-4">
-                    <div
-                        onClick={() => setPaymentMethod('paynow')}
-                        className={`p-6 rounded-2xl border cursor-pointer transition-all ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
-                    >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
-                                {paymentMethod === 'paynow' && <Check size={14} className="text-black" />}
+                    <div className="space-y-3 md:space-y-4">
+                        <div
+                            onClick={() => setPaymentMethod('paynow')}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                        >
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
+                                    {paymentMethod === 'paynow' && <Check size={12} className="text-black" />}
+                                </div>
+                                <h3 className="text-base md:text-lg font-bold text-white">PayNow Transfer</h3>
                             </div>
-                            <h3 className="text-lg font-bold text-white">PayNow Transfer</h3>
-                        </div>
 
-                        {paymentMethod === 'paynow' && (
-                            <div className="pl-10 space-y-6 animate-fade-in">
-                                <div className="flex flex-col sm:flex-row gap-6">
-                                    <div className="w-40 h-40 bg-white p-2 rounded-xl">
-                                        <img src="/paynow-qr.jpg" alt="QR" className="w-full h-full object-contain" />
+                            {paymentMethod === 'paynow' && (
+                                <div className="mt-4 space-y-4 animate-fade-in">
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <div className="w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-xl mx-auto sm:mx-0 flex-shrink-0">
+                                            <img src="/paynow-qr.jpg" alt="QR" className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="space-y-1.5 text-sm flex-1 text-center sm:text-left">
+                                            <p className="text-[#888888]">Pay to Mobile:</p>
+                                            <p className="text-xl md:text-2xl font-mono text-white tracking-wider font-bold">+65 8301 0149</p>
+                                            <p className="text-[#888888]">Recipient:</p>
+                                            <p className="font-bold text-white uppercase">Nicole Xu</p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2 text-sm flex-1">
-                                        <p className="text-[#888888]">Pay to Mobile:</p>
-                                        <p className="text-2xl font-mono text-white tracking-wider font-bold">+65 8301 0149</p>
-                                        <p className="text-[#888888]">Recipient Name:</p>
-                                        <p className="font-bold text-white uppercase">Nicole Xu</p>
+                                    <div className="bg-[#1a1a1a] p-3 md:p-4 rounded-xl text-xs md:text-sm border border-[#333]">
+                                        <p className="text-[#F59E0B] font-bold mb-1">⚠️ Important:</p>
+                                        Screenshot your receipt after paying. We'll confirm via email.
                                     </div>
                                 </div>
-                                <div className="bg-[#1a1a1a] p-4 rounded-xl text-sm border border-[#333]">
-                                    <p className="text-[#F59E0B] font-bold mb-1">⚠️ Important:</p>
-                                    After paying, please take a screenshot of your receipt. We will confirm your order once we receive it via email.
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div
-                        onClick={() => setPaymentMethod('cash')}
-                        className={`p-6 rounded-2xl border cursor-pointer transition-all ${paymentMethod === 'cash' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
-                    >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${paymentMethod === 'cash' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
-                                {paymentMethod === 'cash' && <Check size={14} className="text-black" />}
-                            </div>
-                            <h3 className="text-lg font-bold text-white">Cash Payment</h3>
+                            )}
                         </div>
 
-                        {paymentMethod === 'cash' && (
-                            <div className="pl-10 text-sm text-[#CCCCCC]">
-                                <p className="mb-2">Pay in person to:</p>
-                                <ul className="space-y-1 mb-4 font-semibold text-white">
-                                    <li>• Shirish Pothi</li>
-                                    <li>• Julian Dizon</li>
-                                </ul>
-                                <p>Contact us at <span className="text-[#4ADE80]">shirish.pothi.27@nexus.edu.sg</span> to arrange.</p>
+                        <div
+                            onClick={() => setPaymentMethod('cash')}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'cash' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                        >
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'cash' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
+                                    {paymentMethod === 'cash' && <Check size={12} className="text-black" />}
+                                </div>
+                                <h3 className="text-base md:text-lg font-bold text-white">Cash Payment</h3>
                             </div>
-                        )}
+
+                            {paymentMethod === 'cash' && (
+                                <div className="mt-4 text-sm text-[#CCCCCC]">
+                                    <p className="mb-2">Pay in person to:</p>
+                                    <ul className="space-y-1 mb-3 font-semibold text-white">
+                                        <li>• Shirish Pothi</li>
+                                        <li>• Julian Dizon</li>
+                                    </ul>
+                                    <p className="text-xs">Contact <span className="text-[#4ADE80]">shirish.pothi.27@nexus.edu.sg</span></p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Right: Summary */}
-            <div className="space-y-6">
-                <Card className="p-6 bg-[#0f1115] border-[#1f1f1f] sticky top-24">
-                    <h3 className="font-bold text-white mb-4 border-b border-[#252525] pb-4">Order Summary</h3>
+                {/* Right: Summary - Show as card on mobile, sticky on desktop */}
+                <div className="md:space-y-6">
+                    <Card className="p-4 md:p-6 bg-[#0f1115] border-[#1f1f1f] md:sticky md:top-24">
+                        <h3 className="font-bold text-white mb-3 md:mb-4 pb-2 md:pb-4 border-b border-[#252525] text-sm md:text-base">Order Summary</h3>
 
-                    <div className="space-y-3 mb-6 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-white font-medium">{selectedBundle.name}</span>
-                            <span className="text-white">${selectedBundle.price}</span>
-                        </div>
-                        {extraSelections.length > 0 && (
-                            <div className="pt-2 border-t border-[#252525]">
-                                <p className="text-[#888888] mb-2">Extras:</p>
-                                {extraSelections.map((e, i) => (
-                                    <div key={i} className="flex justify-between mb-1">
-                                        <span className="text-[#CCCCCC]">{e.label}</span>
-                                        <span>$3</span>
-                                    </div>
-                                ))}
+                        <div className="space-y-2 md:space-y-3 mb-4 md:mb-6 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-white font-medium">{selectedBundle.name}</span>
+                                <span className="text-white">${selectedBundle.price}</span>
                             </div>
-                        )}
-                        <div className="pt-4 border-t border-[#252525] flex justify-between items-end">
-                            <span className="font-bold text-lg text-white">Total Due</span>
-                            <span className="font-bold text-3xl text-[#4ADE80]">${currentTotal}</span>
+                            {extraSelections.length > 0 && (
+                                <div className="pt-2 border-t border-[#252525]">
+                                    <p className="text-[#888888] text-xs mb-1">Extras:</p>
+                                    {extraSelections.map((e, i) => (
+                                        <div key={i} className="flex justify-between">
+                                            <span className="text-[#CCCCCC] text-xs">{e.label}</span>
+                                            <span className="text-xs">$3</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="pt-3 border-t border-[#252525] flex justify-between items-end">
+                                <span className="font-bold text-white">Total</span>
+                                <span className="font-bold text-2xl md:text-3xl text-[#4ADE80]">${currentTotal}</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-3">
-                        <Button className="w-full" size="xl" variant="primary" onClick={handleSubmitOrder} disabled={isSubmitting}>
-                            {isSubmitting ? "Processing..." : "Confirm & Pay"}
-                            {!isSubmitting && <ArrowRight size={18} />}
-                        </Button>
-                        <Button className="w-full" variant="ghost" onClick={() => setStep(3)}>
-                            Back to Details
-                        </Button>
-                    </div>
+                        <div className="space-y-2 md:space-y-3">
+                            <Button className="w-full" size="lg" variant="primary" onClick={handleSubmitOrder} disabled={isSubmitting}>
+                                {isSubmitting ? "Processing..." : "Confirm & Pay"}
+                                {!isSubmitting && <ArrowRight size={16} />}
+                            </Button>
+                            <Button className="w-full" variant="ghost" size="sm" onClick={() => setStep(3)}>
+                                Back to Details
+                            </Button>
+                        </div>
 
-                    <div className="text-center text-xs text-[#666] mt-4">
-                        By confirming, you agree to pay the total amount via the selected method.
-                    </div>
-                </Card>
+                        <p className="text-center text-[10px] md:text-xs text-[#666] mt-3">
+                            By confirming, you agree to pay via the selected method.
+                        </p>
+                    </Card>
+                </div>
             </div>
         </div>
     );
@@ -938,26 +1001,39 @@ export default function OrderPage() {
             {/* Background Noise */}
             <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
 
-            {/* Header */}
-            <header className="fixed top-0 left-0 right-0 h-16 bg-[#0f1115]/80 backdrop-blur-xl border-b border-[#1f1f1f] z-50 px-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} className="p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
-                        <ArrowLeft size={20} className="text-[#888888]" />
+            {/* Header - More compact on mobile */}
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-[#0f1115]/95 backdrop-blur-xl border-b border-[#1f1f1f] z-50 px-3 md:px-6 flex items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-4">
+                    <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/")} className="p-1.5 md:p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors">
+                        <ArrowLeft size={18} className="text-[#888888]" />
                     </button>
-                    <h1 className="text-lg font-bold font-proxima-sera">
-                        Step {step} of 5 <span className="text-[#888888] font-light"> | {
-                            step === 1 ? "Select Bundle" :
+                    <div>
+                        <h1 className="text-sm md:text-lg font-bold font-proxima-sera leading-tight">
+                            Step {step} of 5
+                        </h1>
+                        <p className="text-[10px] md:text-xs text-[#888888] font-light">
+                            {step === 1 ? "Select Bundle" :
                                 step === 2 ? "Customize" :
                                     step === 3 ? "Information" :
-                                        step === 4 ? "Payment" : "Receipt"
-                        }</span>
-                    </h1>
+                                        step === 4 ? "Payment" : "Receipt"}
+                        </p>
+                    </div>
+                </div>
+                
+                {/* Progress indicator on mobile */}
+                <div className="flex items-center gap-1 md:hidden">
+                    {[1, 2, 3, 4, 5].map(s => (
+                        <div 
+                            key={s} 
+                            className={`w-2 h-2 rounded-full transition-all ${s <= step ? 'bg-[#4ADE80]' : 'bg-[#333]'} ${s === step ? 'w-4' : ''}`}
+                        />
+                    ))}
                 </div>
             </header>
 
-            <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto relative z-10">
-                {/* Progress Bar */}
-                <div className="max-w-md mx-auto h-1 bg-[#1f1f1f] rounded-full mb-12 overflow-hidden">
+            <div className="pt-16 md:pt-24 pb-8 md:pb-12 px-3 md:px-6 max-w-7xl mx-auto relative z-10" ref={mainContentRef}>
+                {/* Progress Bar - Hidden on mobile (showing dots in header instead) */}
+                <div className="hidden md:block max-w-md mx-auto h-1 bg-[#1f1f1f] rounded-full mb-12 overflow-hidden">
                     <div
                         className="h-full bg-[#4ADE80] transition-all duration-500 ease-out"
                         style={{ width: `${(step / 5) * 100}%` }}

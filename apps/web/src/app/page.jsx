@@ -1,3 +1,4 @@
+import React from "react";
 import { ArrowRight, Sparkles, Users, Star, Check, Leaf, Recycle, Heart, Quote, Palette, RefreshCw, Gift } from "lucide-react";
 import { Button, Card, Badge } from "../components/ui";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
@@ -126,6 +127,21 @@ const ChristmasTreeWidget = () => (
 export default function HomePage() {
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+  // Close mobile menu when hash link is clicked
+  const handleNavClick = (e, href) => {
+    const isHashLink = href.startsWith('/#');
+    if (isHashLink) {
+      e.preventDefault();
+      const targetId = href.replace('/#', '');
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    setMobileMenuOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
@@ -150,34 +166,25 @@ export default function HomePage() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "circOut" }}
-        className="fixed top-0 left-0 right-0 h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]"
+        className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]"
       >
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-3 group">
-              <img src="/logo-full.png" alt="PagePalette" className="h-10 w-auto object-contain brightness-0 invert" />
+              <img src="/logo-full.png" alt="PagePalette" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
             </a>
           </div>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {["Home", "About Us", "Features", "Pricing", "Pre-Order"].map((item, i) => {
               const href = item === "Home" ? "/" : item === "Pre-Order" ? "/order" : item === "About Us" ? "/about" : `/#${item.toLowerCase()}`;
               const isHashLink = href.startsWith('/#');
-              const handleClick = (e) => {
-                if (isHashLink) {
-                  e.preventDefault();
-                  const targetId = href.replace('/#', '');
-                  const element = document.getElementById(targetId);
-                  if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }
-              };
               return (
                 <a
                   key={item}
                   href={href}
-                  onClick={handleClick}
+                  onClick={(e) => handleNavClick(e, href)}
                   className="text-sm text-[#888888] hover:text-white transition-colors font-montserrat relative group"
                 >
                   {item}
@@ -187,14 +194,38 @@ export default function HomePage() {
             })}
           </nav>
 
-          <Button asChild variant="primary" size="md" rightIcon={<ArrowRight size={16} />}>
-            <a href="/order">Pre-Order Now</a>
+          {/* Mobile: Quick links + Menu button */}
+          <div className="flex md:hidden items-center gap-2">
+            {/* Quick access to Features & Pricing on mobile */}
+            <a
+              href="/#features"
+              onClick={(e) => handleNavClick(e, '/#features')}
+              className="text-xs text-[#888888] hover:text-white px-2 py-1 transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="/#pricing"
+              onClick={(e) => handleNavClick(e, '/#pricing')}
+              className="text-xs text-[#888888] hover:text-white px-2 py-1 transition-colors"
+            >
+              Pricing
+            </a>
+          </div>
+
+          <Button asChild variant="primary" size="sm" className="hidden sm:flex" rightIcon={<ArrowRight size={14} />}>
+            <a href="/order">Pre-Order</a>
+          </Button>
+
+          {/* Mobile CTA button */}
+          <Button asChild variant="primary" size="sm" className="sm:hidden" rightIcon={<ArrowRight size={12} />}>
+            <a href="/order">Order</a>
           </Button>
         </div>
       </motion.header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-6 z-10 min-h-[90vh] flex items-center justify-center">
+      <section className="relative pt-20 md:pt-32 pb-12 md:pb-24 px-4 md:px-6 z-10 min-h-[85vh] md:min-h-[90vh] flex items-center justify-center">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -210,16 +241,16 @@ export default function HomePage() {
           </motion.div>
 
           {/* Main Heading with Staggered Words */}
-          <div className="mb-6 overflow-visible py-2">
+          <div className="mb-4 md:mb-6 overflow-visible py-2">
             <motion.h1
               variants={itemVariants}
-              className="text-5xl md:text-7xl lg:text-8xl font-bold text-white font-proxima-sera leading-tight"
+              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white font-proxima-sera leading-tight"
             >
               Express Yourself
             </motion.h1>
             <motion.span
               variants={itemVariants}
-              className="block text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] bg-clip-text text-transparent font-proxima-sera leading-tight py-4"
+              className="block text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] bg-clip-text text-transparent font-proxima-sera leading-tight py-2 md:py-4"
             >
               One PagePal at a Time
             </motion.span>
@@ -228,7 +259,7 @@ export default function HomePage() {
           {/* Subtitle */}
           <motion.p
             variants={itemVariants}
-            className="text-xl text-[#888888] mb-10 max-w-2xl mx-auto font-montserrat leading-relaxed"
+            className="text-base md:text-xl text-[#888888] mb-6 md:mb-10 max-w-2xl mx-auto font-montserrat leading-relaxed px-2"
           >
             The notebook that grows with you. Attach, swap, and collect
             custom PagePals — just like Jibbitz for your Crocs, but for your studies.
@@ -258,7 +289,7 @@ export default function HomePage() {
           {/* Stats - with count up illusion */}
           <motion.div
             variants={itemVariants}
-            className="flex flex-wrap items-center justify-center gap-12 mt-16"
+            className="flex flex-wrap items-center justify-center gap-6 md:gap-12 mt-8 md:mt-16"
           >
             {[
               { val: "20+", label: "PagePal Designs" },
@@ -268,11 +299,11 @@ export default function HomePage() {
               <div key={i} className="text-center group cursor-default">
                 <motion.p
                   whileHover={{ scale: 1.2, color: "#4ADE80" }}
-                  className="text-3xl font-bold text-white font-proxima-sera transition-colors"
+                  className="text-2xl md:text-3xl font-bold text-white font-proxima-sera transition-colors"
                 >
                   {stat.val}
                 </motion.p>
-                <p className="text-sm text-[#888888] font-montserrat mt-1">{stat.label}</p>
+                <p className="text-xs md:text-sm text-[#888888] font-montserrat mt-1">{stat.label}</p>
               </div>
             ))}
           </motion.div>

@@ -454,6 +454,7 @@ export function Layout({ children }: { children: ReactNode }) {
       );
     }
   }, [pathname]);
+  const isDev = import.meta.env.DEV;
   return (
     <html lang="en">
       <head>
@@ -461,7 +462,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script type="module" src="/src/__create/dev-error-overlay.js"></script>
+        {isDev ? (
+          <script type="module" src="/src/__create/dev-error-overlay.js"></script>
+        ) : null}
         <link rel="icon" href="/src/__create/favicon.png" />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
@@ -478,9 +481,12 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  return (
+  const authEnabled = import.meta.env.NEXT_PUBLIC_AUTH_ENABLED === 'true';
+  return authEnabled ? (
     <SessionProvider>
       <Outlet />
     </SessionProvider>
+  ) : (
+    <Outlet />
   );
 }
