@@ -5,7 +5,7 @@ import {
     User, Briefcase, GraduationCap, School, ChevronRight, Package, ArrowRight,
     Download, Home, BookOpen, Leaf, Heart
 } from "lucide-react";
-import { Button, Badge, Card } from "../../components/ui";
+import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
 
@@ -404,15 +404,15 @@ export default function OrderPage() {
                             )}
                         </ul>
 
-                        <Button 
-                            variant="secondary" 
-                            size="lg"
-                            className={`w-full mt-auto ${bundle.id === 'complete' 
-                                ? "bg-[#4ADE80] hover:bg-[#22C55E] text-[#0a0a0a] border-0 font-bold" 
-                                : "bg-[#1a1a1a] border-[#333] group-hover:bg-[#252525]"}`}
+                        <HoverBorderGradient
+                            containerClassName="w-full rounded-xl mt-auto"
+                            className={`w-full py-3 text-center font-bold font-montserrat ${bundle.id === 'complete' 
+                                ? "bg-[#4ADE80] text-[#0a0a0a]" 
+                                : "bg-[#1a1a1a] text-white"}`}
+                            duration={bundle.id === 'complete' ? 0.8 : 1.2}
                         >
                             Select {bundle.name}
-                        </Button>
+                        </HoverBorderGradient>
                     </div>
                 ))}
             </div>

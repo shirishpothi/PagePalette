@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Sparkles, Users, Star, Check, Leaf, Recycle, Heart, Quote, Palette, RefreshCw, Gift } from "lucide-react";
-import { Button, Card, Badge, Highlight, TextHoverEffect, LayoutTextFlip } from "../components/ui";
+import { Button, Card, Badge, Highlight, TextHoverEffect, LayoutTextFlip, HoverBorderGradient } from "../components/ui";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
 
 // Testimonials data - Updated to match About Us data/style
@@ -626,9 +626,15 @@ export default function HomePage() {
                   ))}
                 </ul>
 
-                <Button asChild variant="secondary" size="lg" className={`w-full font-bold ${plan.highlight ? "bg-[#4ADE80] hover:bg-[#22C55E] text-[#0a0a0a] border-0" : "bg-[#151515] border-[#252525] text-white hover:bg-[#1a1a1a]"}`}>
-                  <a href={plan.link}>{plan.cta}</a>
-                </Button>
+                <HoverBorderGradient
+                  as="a"
+                  href={plan.link}
+                  containerClassName="w-full rounded-xl"
+                  className={`w-full py-3 text-center font-bold font-montserrat ${plan.highlight ? "bg-[#4ADE80] text-[#0a0a0a]" : "bg-[#151515] text-white"}`}
+                  duration={plan.highlight ? 0.8 : 1.2}
+                >
+                  {plan.cta}
+                </HoverBorderGradient>
               </motion.div>
             ))}
           </div>

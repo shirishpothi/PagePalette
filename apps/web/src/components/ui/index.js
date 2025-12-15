@@ -4,3 +4,4 @@ export { default as Badge } from "./Badge";
 export { HeroHighlight, Highlight } from "./HeroHighlight";
 export { TextHoverEffect } from "./TextHoverEffect";
 export { LayoutTextFlip } from "./LayoutTextFlip";
+export { HoverBorderGradient } from "./HoverBorderGradient";
