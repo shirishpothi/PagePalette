@@ -621,13 +621,13 @@ export default function OrderPage() {
                                 </select>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#666] uppercase">Class / Code</label>
+                                <label className="text-xs font-bold text-[#666] uppercase">Class Number</label>
                                 <select
                                     value={formData.studentClass}
                                     onChange={e => setFormData({ ...formData, studentClass: e.target.value })}
                                     className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white appearance-none"
                                 >
-                                    {CLASSES.map(c => <option key={c} value={c}>-{c}</option>)}
+                                    {CLASSES.map(c => <option key={c} value={c}>.{c}</option>)}
                                 </select>
                             </div>
                         </div>

@@ -463,11 +463,14 @@ export default function HomePage() {
             variants={itemVariants}
             className="flex items-center justify-center gap-2 mb-8"
           >
-            <div className="flex -space-x-2">
-              {[1,2,3,4,5].map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
-              ))}
-            </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    {[1,2,3,4,5].map((_, i) => (
+                      <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
+                    ))}
+                  </div>
+                  <div className="text-sm text-[#9aa6a0] font-montserrat">50 sold so far</div>
+                </div>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
