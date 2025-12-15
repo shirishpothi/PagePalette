@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowRight, Sparkles, Users, Star, Check, Leaf, Recycle, Heart, Quote, Palette, RefreshCw, Gift } from "lucide-react";
-import { Button, Card, Badge, Highlight } from "../components/ui";
+import { Button, Card, Badge, Highlight, TextHoverEffect } from "../components/ui";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
 
 // Testimonials data - Updated to match About Us data/style
@@ -679,12 +679,11 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-12 px-6 border-t border-[#1f1f1f] z-10 bg-[#0a0a0a]">
+      <footer className="relative py-12 md:py-16 px-6 border-t border-[#1f1f1f] z-10 bg-[#0a0a0a]">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <a href="/" className="inline-block">
-              <img src="/logo-full.png" alt="PagePalette" loading="lazy" className="h-8 w-auto object-contain brightness-0 invert" />
-            </a>
+          {/* TextHoverEffect for PagePalette */}
+          <div className="h-16 sm:h-20 md:h-28 lg:h-32 flex items-center justify-center mb-4">
+            <TextHoverEffect text="PagePalette" />
           </div>
           <p className="text-sm text-[#888888] font-montserrat mb-2">
             Sustainable. Modular. Yours.
