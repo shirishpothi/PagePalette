@@ -95,7 +95,7 @@ export default function AboutPage() {
 
             {/* Header - Mobile responsive */}
             <header className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]">
-                <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6\">
+                <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-3">
                         <a href="/" className="flex items-center gap-3">
                             <img src="/logo-full.png" alt="PagePalette" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />

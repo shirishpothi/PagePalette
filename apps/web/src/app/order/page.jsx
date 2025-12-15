@@ -627,22 +627,22 @@ export default function OrderPage() {
             </div>
 
             {/* Mobile: Fixed bottom bar for navigation with safe area */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40\" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
-                <div className="flex items-center justify-between gap-3\">
-                    <Button variant=\"ghost\" size=\"sm\" onClick={() => setStep(1)} className=\"flex-shrink-0\">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
+                <div className="flex items-center justify-between gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="flex-shrink-0">
                         <ArrowLeft size={16} /> Back
                     </Button>
-                    <div className=\"text-center\">
-                        <div className=\"text-xs text-[#888888]\">{bundleSelections.length + extraSelections.length} selected</div>
-                        <div className=\"text-lg font-bold text-[#4ADE80]\">${currentTotal}</div>
+                    <div className="text-center">
+                        <div className="text-xs text-[#888888]">{bundleSelections.length + extraSelections.length} selected</div>
+                        <div className="text-lg font-bold text-[#4ADE80]">${currentTotal}</div>
                     </div>
-                    <Button variant=\"primary\" size=\"sm\" onClick={() => setStep(3)} className=\"flex-shrink-0\">
+                    <Button variant="primary" size="sm" onClick={() => setStep(3)} className="flex-shrink-0">
                         Continue <ChevronRight size={16} />
                     </Button>
                 </div>
             </div>
             {/* Spacer for fixed bottom bar on mobile - account for safe area */}
-            <div className=\"lg:hidden h-24\" />
+            <div className="lg:hidden h-24" />
         </div>
     );
 
@@ -1085,7 +1085,7 @@ export default function OrderPage() {
                                         ))}
                                     </div>
 
-                                    <div className="flex justify-between items-center text-lg md:text-xl font-bold text-[#1e293b] pt-3 md:pt-4 border-t-2 border-[#1e293b] mt-3 md:mt-4\" style={{ lineHeight: '1.2' }}>
+                                    <div className="flex justify-between items-center text-lg md:text-xl font-bold text-[#1e293b] pt-3 md:pt-4 border-t-2 border-[#1e293b] mt-3 md:mt-4" style={{ lineHeight: '1.2' }}>
                                         <span>TOTAL</span>
                                         <div className="bg-[#fef3c7] px-2 py-1 transform rotate-[-2deg] shadow-sm border border-[#f59e0b]">${currentTotal}</div>
                                     </div>
