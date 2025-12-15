@@ -368,24 +368,24 @@ export default function OrderPage() {
                       : "bg-[#0f1115]/80 border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"}
             `}
                     >
-                        {/* Best Value Badge for Complete Bundle */}
-                        {bundle.id === 'complete' && (
-                            <div className="absolute top-0 right-0 z-10 overflow-hidden rounded-bl-xl rounded-tr-2xl">
-                                <div className="relative">
-                                    {/* Animated glow background */}
-                                    <div className="absolute inset-0 bg-[#4ADE80] blur-md opacity-40 animate-max-pulse" />
-                                    {/* Main badge */}
-                                    <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-2.5 py-1 md:px-3.5 md:py-1.5 border-l border-b border-[#4ADE80]/50">
-                                        <span className="font-bold text-[9px] md:text-[11px] tracking-wider uppercase animate-max-shimmer bg-gradient-to-r from-white via-[#4ADE80] to-white bg-[length:200%_100%] bg-clip-text text-transparent inline-block">
-                                            BEST VALUE
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                         <div className="flex items-center justify-between mb-2 mt-1">
                             <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera">{bundle.name}</h3>
-                            <span className="text-2xl md:text-4xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
+                            <div className="flex flex-col items-end gap-1">
+                                {/* Best Value Badge for Complete Bundle */}
+                                {bundle.id === 'complete' && (
+                                    <div className="relative overflow-hidden rounded-lg">
+                                        {/* Animated glow background */}
+                                        <div className="absolute inset-0 bg-[#4ADE80] blur-md opacity-40 animate-max-pulse" />
+                                        {/* Main badge */}
+                                        <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] px-2 py-0.5 md:px-3 md:py-1 border border-[#4ADE80]/50 rounded-lg">
+                                            <span className="font-bold text-[8px] md:text-[10px] tracking-wider uppercase animate-max-shimmer bg-gradient-to-r from-white via-[#4ADE80] to-white bg-[length:200%_100%] bg-clip-text text-transparent inline-block whitespace-nowrap">
+                                                BEST VALUE
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                <span className="text-2xl md:text-4xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
+                            </div>
                         </div>
 
                         <ul className="space-y-2 md:space-y-3 mb-4 md:mb-8 flex-1">
