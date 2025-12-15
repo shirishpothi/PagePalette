@@ -10,8 +10,14 @@ export const TextHoverEffect = ({
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
   const [maskPosition, setMaskPosition] = useState({ cx: "50%", cy: "50%" });
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return; // Skip cursor tracking on mobile
     if (svgRef.current && cursor.x !== null && cursor.y !== null) {
       const svgRect = svgRef.current.getBoundingClientRect();
       const cxPercentage = ((cursor.x - svgRect.left) / svgRect.width) * 100;
@@ -21,7 +27,18 @@ export const TextHoverEffect = ({
         cy: `${cyPercentage}%`,
       });
     }
-  }, [cursor]);
+  }, [cursor, isMobile]);
+
+  // Simplified mobile version - just styled text
+  if (isMobile) {
+    return (
+      <div className="select-none text-center">
+        <span className="font-proxima-sera text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#4ADE80] via-[#555555] to-[#4ADE80] bg-clip-text text-transparent">
+          {text}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <svg
@@ -33,22 +50,12 @@ export const TextHoverEffect = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
-      onTouchStart={() => setHovered(true)}
-      onTouchEnd={() => setHovered(false)}
-      onTouchMove={(e) => {
-        if (e.touches[0]) {
-          setCursor({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-        }
-      }}
       className="select-none cursor-pointer"
     >
       <defs>
         <linearGradient
           id="textGradient"
           gradientUnits="userSpaceOnUse"
-          cx="50%"
-          cy="50%"
-          r="25%"
         >
           {hovered && (
             <>
@@ -82,7 +89,7 @@ export const TextHoverEffect = ({
           />
         </mask>
       </defs>
-      {/* Base visible text - always visible with subtle stroke */}
+      {/* Base visible text */}
       <text
         x="50%"
         y="50%"
@@ -93,7 +100,7 @@ export const TextHoverEffect = ({
       >
         {text}
       </text>
-      {/* Hover glow background */}
+      {/* Hover glow */}
       <text
         x="50%"
         y="50%"
@@ -105,26 +112,6 @@ export const TextHoverEffect = ({
       >
         {text}
       </text>
-      {/* Animated stroke draw */}
-      <motion.text
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        strokeWidth="0.5"
-        className="fill-transparent stroke-[#666666] font-proxima-sera text-7xl font-bold"
-        initial={{ strokeDashoffset: 1000, strokeDasharray: 1000 }}
-        animate={{
-          strokeDashoffset: 0,
-          strokeDasharray: 1000,
-        }}
-        transition={{
-          duration: 4,
-          ease: "easeInOut",
-        }}
-      >
-        {text}
-      </motion.text>
       {/* Gradient reveal on hover */}
       <text
         x="50%"

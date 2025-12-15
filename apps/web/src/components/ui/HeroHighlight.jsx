@@ -73,18 +73,23 @@ export const Highlight = ({
   children,
   className,
 }) => {
+  // Check for reduced motion preference
+  const prefersReducedMotion = typeof window !== 'undefined' 
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+    : false;
+
   return (
     <motion.span
       initial={{
-        backgroundSize: "0% 100%",
+        backgroundSize: prefersReducedMotion ? "100% 100%" : "0% 100%",
       }}
       animate={{
         backgroundSize: "100% 100%",
       }}
       transition={{
-        duration: 1,
+        duration: prefersReducedMotion ? 0 : 1,
         ease: "linear",
-        delay: 0.2,
+        delay: prefersReducedMotion ? 0 : 0.2,
       }}
       style={{
         backgroundRepeat: "no-repeat",
@@ -92,7 +97,7 @@ export const Highlight = ({
         display: "inline",
       }}
       className={cn(
-        `relative inline-block rounded-lg bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] px-1 pb-1`,
+        `relative inline rounded-md md:rounded-lg bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] px-1 md:px-2 py-0.5 md:pb-1`,
         className,
       )}
     >

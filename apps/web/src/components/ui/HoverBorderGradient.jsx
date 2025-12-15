@@ -3,6 +3,19 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 
+// Check if on mobile or prefers reduced motion
+const useReducedAnimations = () => {
+  const [reduced, setReduced] = useState(false);
+  
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setReduced(isMobile || prefersReduced);
+  }, []);
+  
+  return reduced;
+};
+
 export function HoverBorderGradient({
   children,
   containerClassName,
@@ -11,11 +24,12 @@ export function HoverBorderGradient({
   duration = 1,
   clockwise = true,
   gradientColor = "#4ADE80",
-  intensity = "normal", // "normal" | "strong"
+  intensity = "normal",
   ...props
 }) {
   const [hovered, setHovered] = useState(false);
   const [direction, setDirection] = useState("TOP");
+  const reduceAnimations = useReducedAnimations();
 
   const rotateDirection = (currentDirection) => {
     const directions = ["TOP", "LEFT", "BOTTOM", "RIGHT"];
@@ -26,7 +40,6 @@ export function HoverBorderGradient({
     return directions[nextIndex];
   };
 
-  // Convert hex to rgba for gradient
   const hexToRgba = (hex, alpha = 0) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -34,7 +47,6 @@ export function HoverBorderGradient({
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  // Dynamic gradient maps based on color and intensity
   const gradientSize = intensity === "strong" ? { w: "30%", h: "60%" } : { w: "20.7%", h: "50%" };
   
   const movingMap = useMemo(() => ({
@@ -44,18 +56,23 @@ export function HoverBorderGradient({
     RIGHT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 100% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
   }), [gradientColor, intensity]);
 
-  // Highlight on hover - stronger for "strong" intensity
   const highlightSize = intensity === "strong" ? "100% 250%" : "75% 181.16%";
   const highlight = `radial-gradient(${highlightSize} at 50% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`;
+  
+  // Static border for mobile
+  const staticBorder = `linear-gradient(90deg, ${gradientColor}, ${hexToRgba(gradientColor, 0.3)}, ${gradientColor})`;
 
   useEffect(() => {
+    // Don't run animation interval on mobile
+    if (reduceAnimations) return;
+    
     if (!hovered) {
       const interval = setInterval(() => {
         setDirection((prevState) => rotateDirection(prevState));
       }, duration * 1000);
       return () => clearInterval(interval);
     }
-  }, [hovered, duration]);
+  }, [hovered, duration, reduceAnimations]);
 
   return (
     <Tag
@@ -75,24 +92,34 @@ export function HoverBorderGradient({
       >
         {children}
       </div>
-      <motion.div
-        className={cn(
-          "flex-none inset-0 overflow-hidden absolute z-0 rounded-[inherit]"
-        )}
-        style={{
-          filter: intensity === "strong" ? "blur(3px)" : "blur(2px)",
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-        }}
-        initial={{ background: movingMap[direction] }}
-        animate={{
-          background: hovered
-            ? [movingMap[direction], highlight]
-            : movingMap[direction],
-        }}
-        transition={{ ease: "linear", duration: duration ?? 1 }}
-      />
+      {reduceAnimations ? (
+        // Static gradient border for mobile - much lighter on performance
+        <div
+          className="flex-none inset-0 overflow-hidden absolute z-0 rounded-[inherit]"
+          style={{
+            background: staticBorder,
+            filter: "blur(2px)",
+            opacity: 0.6,
+          }}
+        />
+      ) : (
+        <motion.div
+          className="flex-none inset-0 overflow-hidden absolute z-0 rounded-[inherit]"
+          style={{
+            filter: intensity === "strong" ? "blur(3px)" : "blur(2px)",
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+          }}
+          initial={{ background: movingMap[direction] }}
+          animate={{
+            background: hovered
+              ? [movingMap[direction], highlight]
+              : movingMap[direction],
+          }}
+          transition={{ ease: "linear", duration: duration ?? 1 }}
+        />
+      )}
       <div className="bg-[#0f1115] absolute z-1 flex-none inset-[2px] rounded-[100px]" />
     </Tag>
   );
