@@ -79,6 +79,7 @@ export default async function handler(req, res) {
       ui_mode: 'embedded',
       line_items: lineItems,
       mode: 'payment',
+      locale: 'en',  // English language
       return_url: returnUrl,
       customer_email: customerEmail || undefined,
       metadata: {
