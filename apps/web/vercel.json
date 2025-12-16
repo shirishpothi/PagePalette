@@ -1,11 +1,17 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "react-router",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
   ],
   "functions": {
     "api/order.js": {
+      "runtime": "@vercel/node@3.2.0"
+    },
+    "api/create-checkout-session.js": {
+      "runtime": "@vercel/node@3.2.0"
+    },
+    "api/checkout-session.js": {
       "runtime": "@vercel/node@3.2.0"
     }
   }

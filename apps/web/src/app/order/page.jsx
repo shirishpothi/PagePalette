@@ -156,7 +156,7 @@ export default function OrderPage() {
     });
 
     // Payment
-    const [paymentMethod, setPaymentMethod] = useState("card"); // Default to card now
+    const [paymentMethod, setPaymentMethod] = useState("paynow"); // PayNow is default
     const [stripeClientSecret, setStripeClientSecret] = useState(null);
     const [stripeLoading, setStripeLoading] = useState(false);
 
@@ -917,6 +917,42 @@ export default function OrderPage() {
                     </div>
 
                     <div className="space-y-3 md:space-y-4">
+                        {/* PayNow QR Option - Default */}
+                        <div
+                            onClick={() => setPaymentMethod('paynow')}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                        >
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
+                                    {paymentMethod === 'paynow' && <Check size={12} className="text-black" />}
+                                </div>
+                                <h3 className="text-base md:text-lg font-bold text-white">PayNow Transfer</h3>
+                                <Badge variant="primary" size="sm" className="ml-auto bg-[#4ADE80]/10 text-[#4ADE80] border-[#4ADE80]/30">
+                                    Recommended
+                                </Badge>
+                            </div>
+
+                            {paymentMethod === 'paynow' && (
+                                <div className="mt-4 space-y-4 animate-fade-in">
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <div className="w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-xl mx-auto sm:mx-0 flex-shrink-0">
+                                            <img src="/paynow-qr.jpg" alt="QR" className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="space-y-1.5 text-sm flex-1 text-center sm:text-left">
+                                            <p className="text-[#888888]">Pay to Mobile:</p>
+                                            <p className="text-xl md:text-2xl font-mono text-white tracking-wider font-bold">+65 8301 0149</p>
+                                            <p className="text-[#888888]">Recipient:</p>
+                                            <p className="font-bold text-white uppercase">Nicole Xu</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-[#1a1a1a] p-3 md:p-4 rounded-xl text-xs md:text-sm border border-[#333]">
+                                        <p className="text-[#F59E0B] font-bold mb-1">⚠️ Important:</p>
+                                        Screenshot your receipt after paying. We'll confirm via email.
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Card Payment Option - Stripe Embedded Checkout */}
                         <div
                             onClick={() => setPaymentMethod('card')}
@@ -930,15 +966,10 @@ export default function OrderPage() {
                                     <CreditCard size={18} className="text-[#4ADE80]" />
                                     <h3 className="text-base md:text-lg font-bold text-white">Pay with Card</h3>
                                 </div>
-                                <div className="ml-auto flex items-center gap-2">
-                                    <Badge variant="outline" size="sm" className="bg-[#0a0a0a] text-[#888] border-[#333] hidden sm:flex items-center gap-1">
-                                        <ShieldCheck size={10} className="text-[#4ADE80]" />
-                                        Secured by Stripe
-                                    </Badge>
-                                    <Badge variant="primary" size="sm" className="bg-[#4ADE80]/10 text-[#4ADE80] border-[#4ADE80]/30">
-                                        Recommended
-                                    </Badge>
-                                </div>
+                                <Badge variant="outline" size="sm" className="ml-auto bg-[#0a0a0a] text-[#888] border-[#333] flex items-center gap-1">
+                                    <ShieldCheck size={10} className="text-[#4ADE80]" />
+                                    Secured by Stripe
+                                </Badge>
                             </div>
 
                             {paymentMethod === 'card' && (
@@ -959,39 +990,6 @@ export default function OrderPage() {
                                         <ShieldCheck size={12} className="text-[#4ADE80]" />
                                         Secured by Stripe. Supports Credit/Debit Cards, PayNow & GrabPay.
                                     </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* PayNow QR Option */}
-                        <div
-                            onClick={() => setPaymentMethod('paynow')}
-                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
-                        >
-                            <div className="flex items-center gap-3 md:gap-4">
-                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
-                                    {paymentMethod === 'paynow' && <Check size={12} className="text-black" />}
-                                </div>
-                                <h3 className="text-base md:text-lg font-bold text-white">PayNow Transfer (Manual)</h3>
-                            </div>
-
-                            {paymentMethod === 'paynow' && (
-                                <div className="mt-4 space-y-4 animate-fade-in">
-                                    <div className="flex flex-col sm:flex-row gap-4">
-                                        <div className="w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-xl mx-auto sm:mx-0 flex-shrink-0">
-                                            <img src="/paynow-qr.jpg" alt="QR" className="w-full h-full object-contain" />
-                                        </div>
-                                        <div className="space-y-1.5 text-sm flex-1 text-center sm:text-left">
-                                            <p className="text-[#888888]">Pay to Mobile:</p>
-                                            <p className="text-xl md:text-2xl font-mono text-white tracking-wider font-bold">+65 8301 0149</p>
-                                            <p className="text-[#888888]">Recipient:</p>
-                                            <p className="font-bold text-white uppercase">Nicole Xu</p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-[#1a1a1a] p-3 md:p-4 rounded-xl text-xs md:text-sm border border-[#333]">
-                                        <p className="text-[#F59E0B] font-bold mb-1">⚠️ Important:</p>
-                                        Screenshot your receipt after paying. We'll confirm via email.
-                                    </div>
                                 </div>
                             )}
                         </div>
