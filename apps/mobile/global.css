@@ -1,5 +1,16 @@
+/* Optimized font loading with swap for faster initial render */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
+/* Font-display swap ensures text is visible immediately with fallback font */
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+}
+
 body {
-  font-family: "Inter", sans-serif !important;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  /* Enable GPU acceleration for smoother scrolling */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
 }

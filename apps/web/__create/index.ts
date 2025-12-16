@@ -58,6 +58,33 @@ app.use('*', (c, next) => {
   return als.run({ requestId }, () => next());
 });
 
+// Add performance caching headers for static assets
+app.use('/assets/*', async (c, next) => {
+  await next();
+  // Cache static assets for 1 year (immutable content-hashed files)
+  c.res.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+});
+
+// Cache fonts and images longer
+app.use('/fonts/*', async (c, next) => {
+  await next();
+  c.res.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+});
+
+// Add preload headers for critical resources on HTML pages
+app.use('*', async (c, next) => {
+  await next();
+  const contentType = c.res.headers.get('content-type');
+  if (contentType?.includes('text/html')) {
+    // Add Link headers for preloading critical resources
+    const linkHeaders = [
+      '<https://fonts.googleapis.com>; rel=preconnect',
+      '<https://fonts.gstatic.com>; rel=preconnect; crossorigin',
+    ];
+    c.res.headers.set('Link', linkHeaders.join(', '));
+  }
+});
+
 app.use(contextStorage());
 
 app.onError((err, c) => {

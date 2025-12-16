@@ -1,5 +1,5 @@
 /* Typography imports — purposeful, non-default pairing */
-/* Use font-display=swap for faster initial render */
+/* Use font-display=swap for faster initial render + preconnect to Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -9,6 +9,17 @@
 /* ========================================
    PERFORMANCE OPTIMIZATIONS
    ======================================== */
+
+/* Critical font-display settings for faster text rendering */
+@font-face {
+  font-family: 'Clash Display';
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Manrope';
+  font-display: swap;
+}
 
 /* Reduce motion for users who prefer it + mobile performance */
 @media (prefers-reduced-motion: reduce) {
@@ -41,6 +52,20 @@
 /* Content containment for sections */
 section {
   contain: layout style;
+}
+
+/* Content-visibility for off-screen sections - improves initial render */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Lazy rendering for below-fold content */
+@supports (content-visibility: auto) {
+  section:not(:first-of-type) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
+  }
 }
 
 /* Safe area support for notched devices (iPhone X+, etc.) */

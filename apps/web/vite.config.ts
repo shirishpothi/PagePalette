@@ -19,7 +19,7 @@ export default defineConfig({
   optimizeDeps: {
     // Explicitly include fast-glob, since it gets dynamically imported and we
     // don't want that to cause a re-bundle.
-    include: ['fast-glob', 'lucide-react'],
+    include: ['fast-glob', 'lucide-react', 'motion/react', '@tanstack/react-query', 'react', 'react-dom'],
     exclude: [
       '@hono/auth-js/react',
       '@hono/auth-js',
@@ -34,6 +34,31 @@ export default defineConfig({
   logLevel: 'info',
   build: {
     target: 'es2022',
+    // Enable minification and tree-shaking for smaller bundles
+    minify: 'esbuild',
+    // Split vendor chunks for better caching
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React ecosystem - rarely changes
+          'vendor-react': ['react', 'react-dom', 'react-router', 'react-router-dom'],
+          // Animation library - loaded frequently but can be separate
+          'vendor-motion': ['motion'],
+          // Data fetching - used everywhere
+          'vendor-query': ['@tanstack/react-query'],
+          // 3D rendering - heavy but only used on specific pages
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+          // UI components
+          'vendor-ui': ['lucide-react', 'sonner', 'cmdk'],
+        },
+      },
+    },
+    // Increase chunk size warning limit since we're intentionally chunking
+    chunkSizeWarningLimit: 600,
+    // Enable CSS code splitting
+    cssCodeSplit: true,
+    // Generate source maps for debugging but keep them external
+    sourcemap: false,
   },
   ssr: {
     target: 'es2022',

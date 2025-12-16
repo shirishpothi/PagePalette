@@ -460,6 +460,10 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Preconnect to critical third-party origins for faster resource loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://kit.fontawesome.com" />
         <Meta />
         <Links />
         {isDev ? (
@@ -474,7 +478,8 @@ export function Layout({ children }: { children: ReactNode }) {
         <Toaster position="bottom-right" />
         <ScrollRestoration />
         <Scripts />
-        <script src="https://kit.fontawesome.com/2c15cc0cc7.js" crossOrigin="anonymous" async />
+        {/* Load FontAwesome asynchronously with defer to not block rendering */}
+        <script src="https://kit.fontawesome.com/2c15cc0cc7.js" crossOrigin="anonymous" defer />
       </body>
     </html>
   );

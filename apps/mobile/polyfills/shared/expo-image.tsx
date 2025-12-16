@@ -1,7 +1,7 @@
 import type { ImageProps } from 'expo-image';
 import * as ExpoImage from 'expo-image';
 import { Buffer } from 'buffer';
-import React, { forwardRef, useState, useEffect, useCallback, useRef } from 'react';
+import React, { forwardRef, useState, useEffect, useCallback, useRef, memo } from 'react';
 import { Platform } from 'react-native';
 
 function buildGridPlaceholder(w: number, h: number): string {
@@ -86,14 +86,26 @@ const WrappedImage = forwardRef<ExpoImage.Image, ImageProps>(function WrappedIma
   );
 
   return (
-    <ExpoImage.Image {...props} source={fallbackSource ?? source} ref={ref} onError={handleError} />
+    <ExpoImage.Image
+      {...props}
+      source={fallbackSource ?? source}
+      ref={ref}
+      onError={handleError}
+      // Performance optimizations for faster loading
+      cachePolicy="memory-disk"
+      recyclingKey={currentKey}
+      priority={props.priority ?? 'normal'}
+    />
   );
 });
 
+// Memoize to prevent unnecessary re-renders
+const MemoizedImage = memo(WrappedImage);
+
 /* expose static helpers so nothing breaks */
-Object.assign(WrappedImage, ExpoImage);
+Object.assign(MemoizedImage, ExpoImage);
 
 /* re‑export everything that expo-image provides */
 export * from 'expo-image';
-export const Image = WrappedImage;
+export const Image = MemoizedImage;
 export default Image;

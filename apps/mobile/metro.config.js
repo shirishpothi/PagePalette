@@ -88,6 +88,46 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
 const cacheDir = path.join(__dirname, 'caches');
 
+// Performance optimizations for faster bundling
+config.transformer = {
+  ...config.transformer,
+  // Enable minification for production builds
+  minifierPath: 'metro-minify-terser',
+  minifierConfig: {
+    // Terser options for smaller bundles
+    compress: {
+      drop_console: false, // Keep console for debugging
+      reduce_funcs: true,
+    },
+    mangle: {
+      toplevel: false,
+    },
+  },
+  // Enable inline requires for faster startup
+  getTransformOptions: async (entryPoints, options) => {
+    if (options.dev === false) { 
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+      fs.mkdirSync(cacheDir, { recursive: true });
+    }
+    return {
+      transform: {
+        experimentalImportSupport: false,
+        // Enable inline requires - modules are loaded when first used, not at startup
+        inlineRequires: true,
+      },
+    };
+  },
+};
+
+// Optimize resolver for faster module resolution
+config.resolver = {
+  ...config.resolver,
+  // Reduce extensions to check for faster resolution
+  sourceExts: ['js', 'jsx', 'ts', 'tsx', 'json'],
+  // Enable symlink resolution caching
+  unstable_enableSymlinks: true,
+};
+
 config.cacheStores = () => [
   new FileStore({
     root: path.join(cacheDir, '.metro-cache'),
@@ -116,18 +156,5 @@ config.reporter = {
     return event;
   },
 };
-
-const originalGetTransformOptions = config.transformer.getTransformOptions;
-
-config.transformer = {
-  ...config.transformer,
-  getTransformOptions: async (entryPoints, options) => {
-    if (options.dev === false) { 
-      fs.rmSync(cacheDir, { recursive: true, force: true });
-      fs.mkdirSync(cacheDir);
-    }
-    return await originalGetTransformOptions(entryPoints, options)
-  },
-}
 
 module.exports = config;

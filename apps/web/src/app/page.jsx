@@ -262,7 +262,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-3 group">
-              <img src="/logo-full.png" alt="PagePalette" width="160" height="40" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
+              <img src="/logo-full.png" alt="PagePalette" width="160" height="40" fetchPriority="high" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
             </a>
           </div>
 
@@ -524,9 +524,11 @@ export default function HomePage() {
                   alt={`JA Process ${(i % 6) + 1}`}
                   loading="lazy"
                   decoding="async"
+                  fetchPriority={i < 3 ? "high" : "low"}
                   width="384"
                   height="256"
                   className="w-full h-full object-cover"
+                  style={{ contentVisibility: 'auto' }}
                 />
               </div>
             ))}
