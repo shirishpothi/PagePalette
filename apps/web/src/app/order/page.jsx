@@ -172,8 +172,8 @@ export default function OrderPage() {
         const status = searchParams.get('status');
         
         if (sessionId && status === 'complete') {
-            // Fetch session details and show success
-            fetch(`/api/checkout-session?session_id=${sessionId}`)
+            // Fetch session details, process order (save to sheet, send emails), and show success
+            fetch(`/api/checkout-session?session_id=${sessionId}&process_order=true`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.payment_status === 'paid') {
@@ -206,6 +206,12 @@ export default function OrderPage() {
                     orderMetadata: {
                         role: role,
                         items: ['Tree (Free)', ...bundleSelections.map(i => i.label), ...extraSelections.map(i => i.label)].join(', '),
+                        student_name: formData.studentName || undefined,
+                        student_email: formData.studentEmail || undefined,
+                        year: formData.studentYear || undefined,
+                        class: formData.studentClass || undefined,
+                        position: formData.position || undefined,
+                        room: formData.room || undefined,
                     }
                 }),
             });

@@ -4,28 +4,8 @@ import { Resend } from 'resend';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Helper to save order to SheetDB (with duplicate check)
+// Helper to save order to SheetDB
 async function saveToSheetDB(orderData) {
-  // First check if order already exists
-  try {
-    const checkResponse = await fetch(`https://sheetdb.io/api/v1/i3ywkjbojouc9/search?Order%20ID=${encodeURIComponent(orderData["Order ID"])}`, {
-      headers: {
-        "Accept": "application/json",
-        "Authorization": `Bearer ${process.env.SHEETDB_API_TOKEN}`
-      }
-    });
-    
-    if (checkResponse.ok) {
-      const existing = await checkResponse.json();
-      if (existing && existing.length > 0) {
-        console.log(`Order ${orderData["Order ID"]} already exists in sheet`);
-        return true; // Already saved
-      }
-    }
-  } catch (e) {
-    console.log("Could not check for existing order, proceeding with save");
-  }
-
   const sheetPayload = { data: [orderData] };
   
   const response = await fetch("https://sheetdb.io/api/v1/i3ywkjbojouc9", {
@@ -53,6 +33,7 @@ async function sendConfirmationEmail(customerEmail, customerName, orderId, order
   const itemsHtml = itemsList.map(item => `
     <tr>
       <td style="padding: 5px 0; color: #555;">${item}</td>
+      <td style="padding: 5px 0; text-align: right; color: #555;"></td>
     </tr>
   `).join('');
   const totalAmount = orderData?.["Total Amount"] || '0.00';
@@ -68,17 +49,20 @@ async function sendConfirmationEmail(customerEmail, customerName, orderId, order
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Your PagePalette Order!</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f5; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f5; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .header { background: #0f1115; padding: 40px 20px; text-align: center; }
-    .logo-text { font-family: 'Georgia', serif; font-size: 28px; color: #fff; font-weight: bold; }
+    .logo-text { font-family: 'Georgia', serif; font-size: 28px; color: #fff; font-weight: bold; letter-spacing: 1px; }
     .logo-sub { color: #888; font-size: 14px; margin-top: 5px; }
     .content { padding: 40px; }
+    .greeting { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; }
+    .message { color: #555; margin-bottom: 30px; font-size: 16px; }
+    .receipt-box { background: #f9f9f9; border: 2px dashed #eee; border-radius: 12px; padding: 25px; margin-bottom: 30px; }
     .success-badge { background: #dcfce7; border: 1px solid #86efac; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
     .success-title { font-weight: bold; color: #166534; font-size: 18px; }
-    .receipt-box { background: #f9f9f9; border: 2px dashed #eee; border-radius: 12px; padding: 25px; }
-    .footer { background: #f4f4f5; padding: 30px; text-align: center; font-size: 12px; color: #888; }
+    .footer { background: #f4f4f5; padding: 30px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }
   </style>
 </head>
 <body>
@@ -87,27 +71,36 @@ async function sendConfirmationEmail(customerEmail, customerName, orderId, order
        <div class="logo-text">PagePalette</div>
        <div class="logo-sub">Order #${orderId}</div>
     </div>
+    
     <div class="content">
-       <div style="font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px;">Hi ${customerName}! 👋</div>
+       <div class="greeting">Hi ${customerName}! 👋</div>
+       
        <div class="success-badge">
           <div class="success-title">✅ Payment Received!</div>
-          <p style="margin: 10px 0 0 0; color: #166534;">Your payment has been confirmed.</p>
+          <p style="margin: 10px 0 0 0; color: #166534;">Your payment has been confirmed via Stripe.</p>
        </div>
-       <p style="color: #555; margin-bottom: 30px;">Thank you for your order! Your customizable notebook is now being prepared. We'll notify you when it's ready for pickup at school.</p>
+
+       <p class="message">
+         Thank you for your order! Your customizable notebook is now being prepared.
+         We'll notify you when it's ready for pickup at school.
+       </p>
+
        <div class="receipt-box">
-          <div style="font-weight: bold; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; color: #888;">Order Summary</div>
+          <div style="font-weight: bold; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; color: #888; letter-spacing: 1px;">Your Order Summary</div>
           <table style="width: 100%; border-collapse: collapse;">
             ${itemsHtml}
             <tr style="border-top: 1px solid #ddd;">
-              <td style="padding-top: 15px; font-weight: bold; font-size: 18px; color: #166534;">Total Paid: $${totalAmount} SGD</td>
+              <td style="padding-top: 15px; font-weight: bold; font-size: 18px; color: #111;">Total Paid</td>
+              <td style="padding-top: 15px; text-align: right; font-weight: bold; font-size: 18px; color: #166534;">$${totalAmount} SGD</td>
             </tr>
           </table>
        </div>
     </div>
-    <div class="footer">
+    
+     <div class="footer">
        <p>Sent with ❤️ by the PagePalette Team</p>
-       <p>A Junior Achievement Singapore Company • © 2025</p>
-    </div>
+       <p>A Junior Achievement Singapore Company: PagePalette • © 2025</p>
+     </div>
   </div>
 </body>
 </html>
@@ -126,17 +119,20 @@ async function sendAdminNotification(orderId, customerName, customerEmail, order
     await resend.emails.send({
       from: process.env.FROM_EMAIL || 'PagePalette <orders@resend.dev>',
       to: process.env.ADMIN_EMAIL,
-      subject: `💳 PAID - Order ${orderId}`,
+      subject: `💳 PAID - New Order ${orderId}`,
       html: `
-        <div style="font-family: sans-serif; max-width: 600px;">
-          <h2 style="color: #166534;">💳 Payment Received!</h2>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #166534;">💳 Payment Received via Stripe!</h2>
           <p><strong>Order ID:</strong> ${orderId}</p>
           <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
           <p><strong>Bundle:</strong> ${orderData?.Bundle || 'N/A'}</p>
           <p><strong>Items:</strong> ${orderData?.Items || 'N/A'}</p>
-          <p><strong>Total:</strong> $${orderData?.["Total Amount"]} SGD</p>
-          <p><strong>Payment:</strong> Stripe Online</p>
+          <p><strong>Total:</strong> $${orderData?.["Total Amount"] || 'N/A'} SGD</p>
+          <p><strong>Payment Method:</strong> Stripe (Card/PayNow)</p>
           <p><strong>Status:</strong> <span style="color: #166534; font-weight: bold;">PAID</span></p>
+          <p><strong>Role:</strong> ${orderData?.Role || 'N/A'}</p>
+          ${orderData?.["Student Name"] && orderData["Student Name"] !== "N/A" ? `<p><strong>Student:</strong> ${orderData["Student Name"]} (${orderData["Student Email"]})</p>` : ''}
+          ${orderData?.Year && orderData.Year !== "N/A" ? `<p><strong>Year/Class:</strong> ${orderData.Year}/${orderData.Class}</p>` : ''}
         </div>
       `
     });
@@ -148,28 +144,43 @@ async function sendAdminNotification(orderId, customerName, customerEmail, order
 export default async function handler(req, res) {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, stripe-signature');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { session_id, process_order } = req.query;
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!session_id) {
-    return res.status(400).json({ error: 'Missing session_id' });
-  }
+  let event;
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    // If we have a webhook secret, verify the signature
+    if (webhookSecret && sig) {
+      // For Vercel, we need to get the raw body
+      const rawBody = JSON.stringify(req.body);
+      event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+    } else {
+      // Fallback for development or if no webhook secret
+      event = req.body;
+    }
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+  }
 
-    // If payment is complete and process_order flag is set, save to sheet and send emails
-    if (session.payment_status === 'paid' && process_order === 'true') {
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    
+    // Only process if payment was successful
+    if (session.payment_status === 'paid') {
       const metadata = session.metadata || {};
       const orderId = metadata.order_id || session.id.slice(-12);
       const customerName = metadata.customer_name || 'Customer';
@@ -197,34 +208,23 @@ export default async function handler(req, res) {
         "Total Amount": totalAmount,
         "Payment Method": "Stripe (Online)",
         "Status": "Paid",
-        "Stripe Session": session.id
+        "Stripe Session": session.id,
+        "Payment Intent": session.payment_intent || 'N/A'
       };
 
       // Save to SheetDB
-      const saved = await saveToSheetDB(orderData);
+      await saveToSheetDB(orderData);
 
-      // Send emails only if we just saved (not a duplicate)
-      if (saved) {
-        await sendConfirmationEmail(customerEmail, customerName, orderId, orderData);
-        await sendAdminNotification(orderId, customerName, customerEmail, orderData);
-      }
+      // Send confirmation email to customer
+      await sendConfirmationEmail(customerEmail, customerName, orderId, orderData);
 
-      console.log(`Order ${orderId} processed via checkout-session API`);
+      // Send notification to admin
+      await sendAdminNotification(orderId, customerName, customerEmail, orderData);
+
+      console.log(`Order ${orderId} processed successfully via webhook`);
     }
-
-    res.status(200).json({
-      status: session.status,
-      payment_status: session.payment_status,
-      customer_email: session.customer_email,
-      amount_total: session.amount_total,
-      currency: session.currency,
-      metadata: session.metadata,
-    });
-  } catch (error) {
-    console.error('Stripe session retrieve error:', error);
-    res.status(500).json({ 
-      error: 'Failed to retrieve session',
-      message: error.message 
-    });
   }
+
+  // Return success
+  res.status(200).json({ received: true });
 }
