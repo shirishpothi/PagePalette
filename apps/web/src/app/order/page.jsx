@@ -1,18 +1,16 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft, Check, Sparkles, CreditCard, Banknote, ShieldCheck, Mail,
     User, Briefcase, GraduationCap, School, ChevronRight, Package, ArrowRight,
-    Download, Home, BookOpen, Leaf, Heart
+    Download, Home, BookOpen, Leaf, Heart, Loader2
 } from "lucide-react";
 import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
-import { loadStripe } from "@stripe/stripe-js";
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
-// Initialize Stripe (use your publishable key from environment)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51SZpys0z7bZoqy7rQVhDQRdkd96XSYr5Yvqh7oWGYEhQiPLWZqV6wQTWLYHwQcvJKpLZrR4MuQEAqf88pW2aS9LM00dGwKCTZj');
+// Lazy load Stripe components to avoid SSR issues
+const StripeCheckout = lazy(() => import("./StripeCheckout"));
 
 // --- Constants & Data ---
 // Note: Removed STL file URLs for faster loading. Using emoji representations.
@@ -946,12 +944,16 @@ export default function OrderPage() {
                             {paymentMethod === 'card' && (
                                 <div className="mt-4 animate-fade-in">
                                     <div className="bg-[#0a0a0a] rounded-xl overflow-hidden min-h-[400px]">
-                                        <EmbeddedCheckoutProvider
-                                            stripe={stripePromise}
-                                            options={{ fetchClientSecret }}
-                                        >
-                                            <EmbeddedCheckout />
-                                        </EmbeddedCheckoutProvider>
+                                        <Suspense fallback={
+                                            <div className="flex items-center justify-center min-h-[400px]">
+                                                <div className="text-center">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-[#4ADE80] mx-auto mb-3" />
+                                                    <p className="text-sm text-[#888]">Loading secure payment...</p>
+                                                </div>
+                                            </div>
+                                        }>
+                                            <StripeCheckout fetchClientSecret={fetchClientSecret} />
+                                        </Suspense>
                                     </div>
                                     <p className="text-xs text-[#666] mt-3 text-center flex items-center justify-center gap-1">
                                         <ShieldCheck size={12} className="text-[#4ADE80]" />
