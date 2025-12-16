@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { Modal, View } from 'react-native';
-import { useAuthModal, useAuthStore, authKey } from './store';
+import { useAuthModal, useAuthStore, authKey, prefetchAuthData } from './store';
 
 
 /**
@@ -13,17 +13,25 @@ import { useAuthModal, useAuthStore, authKey } from './store';
  * directly.
  */
 export const useAuth = () => {
-  const { isReady, auth, setAuth } = useAuthStore();
+  const { isReady, auth, setAuth, initFromCache } = useAuthStore();
   const { isOpen, close, open } = useAuthModal();
 
   const initiate = useCallback(() => {
-    SecureStore.getItemAsync(authKey).then((auth) => {
+    // First try to use cached data for instant ready state
+    const cached = initFromCache?.();
+    if (cached) {
+      useAuthStore.setState(cached);
+      return;
+    }
+    
+    // Fall back to async fetch if cache not ready
+    prefetchAuthData().then((auth) => {
       useAuthStore.setState({
-        auth: auth ? JSON.parse(auth) : null,
+        auth: auth,
         isReady: true,
       });
     });
-  }, []);
+  }, [initFromCache]);
 
   useEffect(() => {}, []);
 

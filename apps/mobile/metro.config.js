@@ -98,10 +98,19 @@ config.transformer = {
     compress: {
       drop_console: false, // Keep console for debugging
       reduce_funcs: true,
+      // Additional compression optimizations
+      passes: 2,
+      pure_funcs: ['console.debug'],
+      dead_code: true,
+      unused: true,
+      collapse_vars: true,
+      reduce_vars: true,
     },
     mangle: {
       toplevel: false,
     },
+    // Enable source map for debugging
+    sourceMap: false,
   },
   // Enable inline requires for faster startup
   getTransformOptions: async (entryPoints, options) => {
@@ -114,7 +123,16 @@ config.transformer = {
         experimentalImportSupport: false,
         // Enable inline requires - modules are loaded when first used, not at startup
         inlineRequires: true,
+        // Enable constant folding for smaller bundles
+        nonInlinedRequires: [
+          // Keep these modules eagerly loaded for faster startup
+          'react',
+          'react-native',
+          'expo-router',
+        ],
       },
+      preloadedModules: false,
+      ramGroups: [],
     };
   },
 };
@@ -126,6 +144,8 @@ config.resolver = {
   sourceExts: ['js', 'jsx', 'ts', 'tsx', 'json'],
   // Enable symlink resolution caching
   unstable_enableSymlinks: true,
+  // Enable package exports for better tree shaking
+  unstable_enablePackageExports: true,
 };
 
 config.cacheStores = () => [

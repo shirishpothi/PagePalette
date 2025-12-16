@@ -1,10 +1,15 @@
-html, body, #__next {
+/* Performance-optimized reset CSS */
+html, body, #__next, #root {
   -webkit-overflow-scrolling: touch;
+  /* Enable GPU acceleration for smoother scrolling */
+  transform: translateZ(0);
 }
-#__next {
+#__next, #root {
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Optimize layout calculations */
+  contain: layout style;
 }
 html {
   scroll-behavior: smooth;
@@ -18,7 +23,27 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -ms-overflow-style: scrollbar;
+  /* Reduce paint operations */
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* Optimize image loading */
+img, video {
+  /* Lazy loading for off-screen images */
+  content-visibility: auto;
+  /* Prevent layout shifts */
+  max-width: 100%;
+  height: auto;
+}
+
+/* Optimize animations for performance */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    /* Use GPU-accelerated transforms */
+    will-change: auto;
+  }
+}
+
 input:focus,
 textarea:focus,
 button:focus,

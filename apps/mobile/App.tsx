@@ -1,6 +1,6 @@
 import { usePathname, useRouter } from 'expo-router';
 import { App } from 'expo-router/build/qualified-entry';
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState, useCallback, useMemo, startTransition } from 'react';
 import { ErrorBoundaryWrapper } from './__create/SharedErrorBoundary';
 import './src/__create/polyfills';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -8,7 +8,8 @@ import { Toaster } from 'sonner-native';
 import { AlertModal } from './polyfills/web/alerts.web';
 import './global.css';
 
-const GlobalErrorReporter = () => {
+// Memoized error reporter to avoid re-renders
+const GlobalErrorReporter = memo(() => {
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -30,22 +31,23 @@ const GlobalErrorReporter = () => {
     };
   }, []);
   return null;
+});
+
+// Pre-computed safe area insets for faster initial render
+const INITIAL_SAFE_AREA_METRICS = {
+  insets: { top: 64, bottom: 34, left: 0, right: 0 },
+  frame: {
+    x: 0,
+    y: 0,
+    width: typeof window === 'undefined' ? 390 : window.innerWidth,
+    height: typeof window === 'undefined' ? 844 : window.innerHeight,
+  },
 };
 
 const Wrapper = memo(() => {
   return (
     <ErrorBoundaryWrapper>
-      <SafeAreaProvider
-        initialMetrics={{
-          insets: { top: 64, bottom: 34, left: 0, right: 0 },
-          frame: {
-            x: 0,
-            y: 0,
-            width: typeof window === 'undefined' ? 390 : window.innerWidth,
-            height: typeof window === 'undefined' ? 844 : window.innerHeight,
-          },
-        }}
-      >
+      <SafeAreaProvider initialMetrics={INITIAL_SAFE_AREA_METRICS}>
         <App />
         <GlobalErrorReporter />
         <Toaster />

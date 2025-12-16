@@ -1,23 +1,45 @@
 import '@expo/metro-runtime';
 import { toPng } from 'html-to-image';
 import { serializeError } from 'serialize-error';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, Suspense, lazy, startTransition } from 'react';
 import './__create/consoleToParent';
 import { renderRootComponent } from 'expo-router/build/renderRootComponent';
 
 import { LoadSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 import './__create/reset.css';
-import CreateApp from './App';
+
+// Lazy load the main app to allow faster initial render
+const CreateApp = lazy(() => import('./App'));
+
+// Preload fonts early using link preload for faster FCP
+if (typeof document !== 'undefined') {
+  const fontPreload = document.createElement('link');
+  fontPreload.rel = 'preload';
+  fontPreload.as = 'style';
+  fontPreload.href = 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap';
+  document.head.appendChild(fontPreload);
+}
+// Cache for inlined fonts to avoid re-fetching
+let fontsCached = false;
+
 async function inlineGoogleFonts(): Promise<void> {
+  // Skip if already processed
+  if (fontsCached) return;
+  fontsCached = true;
+
   // Find all <link> elements that load Google Fonts CSS
   const links = Array.from(document.querySelectorAll<HTMLLinkElement>(
     'link[rel="stylesheet"][href*="fonts.googleapis.com"]'
   ));
 
-  for (const link of links) {
+  // Process fonts concurrently for faster loading
+  await Promise.all(links.map(async (link) => {
     try {
       const href = link.href;
-      const res = await fetch(href);
+      const res = await fetch(href, { 
+        cache: 'force-cache',
+        priority: 'low' as RequestPriority 
+      });
       let cssText = await res.text();
 
       // Ensure font URLs are absolute
@@ -34,8 +56,9 @@ async function inlineGoogleFonts(): Promise<void> {
       style.textContent = cssText;
       document.head.appendChild(style);
     } catch (err) {
+      // Silent fail - fonts will still work via link tag
     }
-  }
+  }));
 
   // Wait for all fonts to actually load
   if ("fonts" in document) {
@@ -117,11 +140,47 @@ export const useHandleScreenshotRequest = () => {
     };
   }, []);
 };
-const CreateAppWithFonts = () => {
-  useHandleScreenshotRequest();
-  return <CreateApp />;
+// Minimal loading indicator that shows immediately
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    height: '100vh',
+    backgroundColor: '#fff'
+  }}>
+    <div style={{ 
+      width: 40, 
+      height: 40, 
+      border: '3px solid #f3f3f3',
+      borderTop: '3px solid #3498db',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    }} />
+    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 
-}
-LoadSkiaWeb().then(async () => {
-  renderRootComponent(CreateAppWithFonts)
-});
+const CreateAppWithFonts = () => {
+  const [skiaReady, setSkiaReady] = useState(false);
+  
+  useEffect(() => {
+    // Load Skia in background without blocking render
+    LoadSkiaWeb().then(() => {
+      startTransition(() => {
+        setSkiaReady(true);
+      });
+    });
+  }, []);
+  
+  useHandleScreenshotRequest();
+  
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CreateApp />
+    </Suspense>
+  );
+};
+
+// Render immediately without waiting for Skia
+renderRootComponent(CreateAppWithFonts);

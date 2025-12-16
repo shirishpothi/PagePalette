@@ -95,12 +95,32 @@ const WrappedImage = forwardRef<ExpoImage.Image, ImageProps>(function WrappedIma
       cachePolicy="memory-disk"
       recyclingKey={currentKey}
       priority={props.priority ?? 'normal'}
+      // Enable progressive loading for large images
+      contentFit={props.contentFit ?? 'cover'}
+      // Use placeholder for smoother loading experience
+      placeholder={props.placeholder}
+      // Transition animation for smooth loading
+      transition={props.transition ?? { duration: 200 }}
     />
   );
 });
 
-// Memoize to prevent unnecessary re-renders
-const MemoizedImage = memo(WrappedImage);
+// Memoized image with optimized comparison
+const MemoizedImage = memo(WrappedImage, (prevProps, nextProps) => {
+  // Quick bailout for common cases
+  if (prevProps === nextProps) return true;
+  
+  // Compare only essential props to avoid unnecessary re-renders
+  const prevKey = computeSourceKey(prevProps.source);
+  const nextKey = computeSourceKey(nextProps.source);
+  
+  return (
+    prevKey === nextKey &&
+    prevProps.style === nextProps.style &&
+    prevProps.contentFit === nextProps.contentFit &&
+    prevProps.placeholder === nextProps.placeholder
+  );
+});
 
 /* expose static helpers so nothing breaks */
 Object.assign(MemoizedImage, ExpoImage);

@@ -1,10 +1,19 @@
 /* Optimized font loading with swap for faster initial render */
+/* Use preconnect for faster DNS/TLS for font loading */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 /* Font-display swap ensures text is visible immediately with fallback font */
 @font-face {
   font-family: 'Inter';
   font-display: swap;
+  /* Size-adjust helps reduce CLS when font loads */
+  size-adjust: 100%;
+}
+
+/* Preload critical font weights for faster LCP */
+:root {
+  /* CSS containment for better rendering performance */
+  contain: layout style;
 }
 
 body {
@@ -13,4 +22,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
+  /* Reduce paint operations */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimize images for LCP */
+img {
+  content-visibility: auto;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

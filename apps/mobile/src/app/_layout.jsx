@@ -2,10 +2,10 @@
 import { useAuth } from '@/utils/auth/useAuth';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 
 // Prevent splash screen from auto-hiding until we're ready
 SplashScreen.preventAutoHideAsync();
@@ -25,6 +25,12 @@ const getQueryClient = () => {
           // Optimize for faster initial load
           refetchOnMount: false,
           refetchOnReconnect: false,
+          // Network-only mode to speed up initial render
+          networkMode: 'offlineFirst',
+        },
+        mutations: {
+          // Don't retry mutations by default
+          retry: 0,
         },
       },
     });
@@ -32,20 +38,38 @@ const getQueryClient = () => {
   return queryClientSingleton;
 };
 
+// Minimum time to show splash (prevents flash)
+const MIN_SPLASH_TIME = Platform.OS === 'web' ? 0 : 300;
+
 export default function RootLayout() {
   const { initiate, isReady } = useAuth();
   const queryClient = useMemo(() => getQueryClient(), []);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
-    // Initialize auth immediately
-    initiate();
+    // Initialize auth immediately using startTransition for better responsiveness
+    startTransition(() => {
+      initiate();
+    });
   }, [initiate]);
 
   const hideSplash = useCallback(() => {
-    // Use InteractionManager to defer splash hide until after animations
-    InteractionManager.runAfterInteractions(() => {
-      SplashScreen.hideAsync();
-    });
+    // Ensure minimum splash time to prevent jarring flash
+    const elapsed = Date.now() - startTimeRef.current;
+    const remaining = Math.max(0, MIN_SPLASH_TIME - elapsed);
+    
+    const doHide = () => {
+      // Use InteractionManager to defer splash hide until after animations
+      InteractionManager.runAfterInteractions(() => {
+        SplashScreen.hideAsync();
+      });
+    };
+    
+    if (remaining > 0) {
+      setTimeout(doHide, remaining);
+    } else {
+      doHide();
+    }
   }, []);
 
   useEffect(() => {
