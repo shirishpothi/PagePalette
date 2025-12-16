@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft, Check, Sparkles, CreditCard, Banknote, ShieldCheck, Mail,
@@ -8,6 +8,11 @@ import {
 import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
+
+// Initialize Stripe (use your publishable key from environment)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51SZpys0z7bZoqy7rQVhDQRdkd96XSYr5Yvqh7oWGYEhQiPLWZqV6wQTWLYHwQcvJKpLZrR4MuQEAqf88pW2aS9LM00dGwKCTZj');
 
 // --- Constants & Data ---
 // Note: Removed STL file URLs for faster loading. Using emoji representations.
@@ -153,13 +158,62 @@ export default function OrderPage() {
     });
 
     // Payment
-    const [paymentMethod, setPaymentMethod] = useState("paynow");
+    const [paymentMethod, setPaymentMethod] = useState("card"); // Default to card now
+    const [stripeClientSecret, setStripeClientSecret] = useState(null);
+    const [stripeLoading, setStripeLoading] = useState(false);
 
     // Order Status
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [orderId, setOrderId] = useState("");
     const [receiptUrl, setReceiptUrl] = useState(null);
+
+    // Check for Stripe return (after payment completion)
+    useEffect(() => {
+        const sessionId = searchParams.get('session_id');
+        const status = searchParams.get('status');
+        
+        if (sessionId && status === 'complete') {
+            // Fetch session details and show success
+            fetch(`/api/checkout-session?session_id=${sessionId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.payment_status === 'paid') {
+                        setOrderId(data.metadata?.order_id || sessionId.slice(-8));
+                        setPaymentMethod('card');
+                        setStep(5); // Go to receipt
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [searchParams]);
+
+    // Create Stripe checkout session when entering payment step with card selected
+    const fetchClientSecret = useCallback(async () => {
+        if (paymentMethod !== 'card') return null;
+        
+        const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
+        setOrderId(newOrderId);
+        
+        const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bundleId: selectedBundle.id,
+                extraCount: extraSelections.length,
+                customerEmail: formData.email,
+                customerName: formData.name,
+                orderId: newOrderId,
+                orderMetadata: {
+                    role: role,
+                    items: ['Tree (Free)', ...bundleSelections.map(i => i.label), ...extraSelections.map(i => i.label)].join(', '),
+                }
+            }),
+        });
+        
+        const data = await response.json();
+        return data.clientSecret;
+    }, [selectedBundle.id, extraSelections.length, formData.email, formData.name, role, bundleSelections, paymentMethod]);
 
     // Verification helpers
     const toggleConfirmation = (itemId) => {
@@ -850,6 +904,49 @@ export default function OrderPage() {
                     </div>
 
                     <div className="space-y-3 md:space-y-4">
+                        {/* Card Payment Option - Stripe Embedded Checkout */}
+                        <div
+                            onClick={() => setPaymentMethod('card')}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'card' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                        >
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'card' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
+                                    {paymentMethod === 'card' && <Check size={12} className="text-black" />}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <CreditCard size={18} className="text-[#4ADE80]" />
+                                    <h3 className="text-base md:text-lg font-bold text-white">Pay with Card</h3>
+                                </div>
+                                <div className="ml-auto flex items-center gap-2">
+                                    <Badge variant="outline" size="sm" className="bg-[#0a0a0a] text-[#888] border-[#333] hidden sm:flex items-center gap-1">
+                                        <ShieldCheck size={10} className="text-[#4ADE80]" />
+                                        Secured by Stripe
+                                    </Badge>
+                                    <Badge variant="primary" size="sm" className="bg-[#4ADE80]/10 text-[#4ADE80] border-[#4ADE80]/30">
+                                        Recommended
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {paymentMethod === 'card' && (
+                                <div className="mt-4 animate-fade-in">
+                                    <div className="bg-[#0a0a0a] rounded-xl overflow-hidden min-h-[400px]">
+                                        <EmbeddedCheckoutProvider
+                                            stripe={stripePromise}
+                                            options={{ fetchClientSecret }}
+                                        >
+                                            <EmbeddedCheckout />
+                                        </EmbeddedCheckoutProvider>
+                                    </div>
+                                    <p className="text-xs text-[#666] mt-3 text-center flex items-center justify-center gap-1">
+                                        <ShieldCheck size={12} className="text-[#4ADE80]" />
+                                        Secured by Stripe. Supports Credit/Debit Cards, PayNow & GrabPay.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* PayNow QR Option */}
                         <div
                             onClick={() => setPaymentMethod('paynow')}
                             className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
@@ -858,7 +955,7 @@ export default function OrderPage() {
                                 <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
                                     {paymentMethod === 'paynow' && <Check size={12} className="text-black" />}
                                 </div>
-                                <h3 className="text-base md:text-lg font-bold text-white">PayNow Transfer</h3>
+                                <h3 className="text-base md:text-lg font-bold text-white">PayNow Transfer (Manual)</h3>
                             </div>
 
                             {paymentMethod === 'paynow' && (
@@ -882,6 +979,7 @@ export default function OrderPage() {
                             )}
                         </div>
 
+                        {/* Cash Option */}
                         <div
                             onClick={() => setPaymentMethod('cash')}
                             className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'cash' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
@@ -934,36 +1032,53 @@ export default function OrderPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2 md:space-y-3">
-                            {submitError && (
-                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center mb-2">
-                                    {submitError}
-                                </div>
-                            )}
-                            <Button 
-                                className="w-full" 
-                                size="lg" 
-                                variant="primary" 
-                                onClick={handleSubmitOrder} 
-                                disabled={isSubmitting}
-                                aria-busy={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Processing...
-                                    </>
-                                ) : (
-                                    <>Confirm & Pay <ArrowRight size={16} /></>
+                        {/* Only show submit button for non-card payment methods */}
+                        {paymentMethod !== 'card' && (
+                            <div className="space-y-2 md:space-y-3">
+                                {submitError && (
+                                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center mb-2">
+                                        {submitError}
+                                    </div>
                                 )}
-                            </Button>
-                            <Button className="w-full" variant="ghost" size="sm" onClick={() => setStep(3)} aria-label="Go back to details">
-                                Back to Details
-                            </Button>
-                        </div>
+                                <Button 
+                                    className="w-full" 
+                                    size="lg" 
+                                    variant="primary" 
+                                    onClick={handleSubmitOrder} 
+                                    disabled={isSubmitting}
+                                    aria-busy={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>Confirm Order <ArrowRight size={16} /></>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+
+                        {paymentMethod === 'card' && (
+                            <div className="space-y-2">
+                                <p className="text-xs text-[#888] text-center">
+                                    Complete payment using the form on the left
+                                </p>
+                                <div className="flex items-center justify-center gap-1.5 py-2 px-3 bg-[#0a0a0a] rounded-lg border border-[#252525]">
+                                    <ShieldCheck size={14} className="text-[#4ADE80]" />
+                                    <span className="text-xs text-[#888]">Payment secured by</span>
+                                    <span className="text-xs font-bold text-white">Stripe</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <Button className="w-full mt-3" variant="ghost" size="sm" onClick={() => setStep(3)} aria-label="Go back to details">
+                            Back to Details
+                        </Button>
 
                         <p className="text-center text-[10px] md:text-xs text-[#666] mt-3">
                             By confirming, you agree to pay via the selected method.

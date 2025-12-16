@@ -59,10 +59,20 @@ const floatVariants = {
 // --- Holiday Components ---
 
 const SnowEffect = () => {
-  // Reduced snowflakes for better performance on mobile (12 instead of 25)
+  // Skip on mobile entirely for performance
+  const [isMobile, setIsMobile] = React.useState(true);
+  
+  React.useEffect(() => {
+    setIsMobile(window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+  
+  // Don't render on mobile at all
+  if (isMobile) return null;
+  
+  // Reduced snowflakes for better performance (10 instead of 12)
   // Uses CSS animations with will-change for GPU acceleration
-  const snowflakes = Array.from({ length: 12 }).map((_, i) => ({
-    left: `${(i * 8) % 100}%`,
+  const snowflakes = Array.from({ length: 10 }).map((_, i) => ({
+    left: `${(i * 10) % 100}%`,
     animationDuration: `${4 + (i % 3)}s`,
     animationDelay: `${(i % 4) * 0.5}s`,
     opacity: 0.25 + (i % 3) * 0.15,
@@ -73,8 +83,6 @@ const SnowEffect = () => {
     <div 
       className="fixed inset-0 pointer-events-none z-50 overflow-hidden" 
       aria-hidden="true"
-      // Respect user's reduced motion preference
-      style={{ display: 'var(--snow-display, block)' }}
     >
       {snowflakes.map((flake, i) => (
         <div
@@ -100,8 +108,7 @@ const SnowEffect = () => {
           will-change: transform;
         }
         @media (prefers-reduced-motion: reduce) {
-          :root { --snow-display: none; }
-          .snow-flake { animation: none !important; }
+          .snow-flake { animation: none !important; display: none; }
         }
       `}</style>
     </div>
@@ -109,9 +116,26 @@ const SnowEffect = () => {
 };
 
 // Christmas Tree Widget with localized snow effect and PagePalette ornament
-const ChristmasTreeWidget = () => (
+// Hidden on mobile for performance
+const ChristmasTreeWidget = () => {
+  const [isMobile, setIsMobile] = React.useState(true);
+  
+  React.useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+  
+  // Skip the fancy version on mobile
+  if (isMobile) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 pointer-events-none select-none" aria-hidden="true">
+        <span className="text-4xl drop-shadow-lg" role="img" aria-label="Christmas tree">🎄</span>
+      </div>
+    );
+  }
+  
+  return (
   <div className="fixed bottom-4 right-4 z-50 pointer-events-none select-none" aria-hidden="true">
-    <div className="relative w-20 h-28 md:w-32 md:h-40">
+    <div className="relative w-32 h-40">
       {/* Localized snow effect around the tree */}
       <div className="absolute inset-0 overflow-hidden rounded-full">
         {Array.from({ length: 15 }).map((_, i) => (
@@ -181,6 +205,7 @@ const ChristmasTreeWidget = () => (
     </div>
   </div>
 );
+};
 
 export default function HomePage() {
   const { scrollYProgress } = useScroll();
@@ -218,13 +243,13 @@ export default function HomePage() {
       <div className="fixed inset-0 pointer-events-none z-0">
         <motion.div
           style={{ y: backgroundY }}
-          className="absolute top-0 left-1/4 w-96 h-96 bg-[#36484d]/10 rounded-full blur-3xl"
+          className="absolute top-0 left-1/4 w-96 h-96 bg-[#36484d]/10 rounded-full blur-3xl will-change-transform"
         />
         <motion.div
           style={{ y: useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]) }}
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764134]/10 rounded-full blur-3xl"
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764134]/10 rounded-full blur-3xl will-change-transform"
         />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+        {/* Noise texture removed for performance - was loading external SVG */}
       </div>
 
       {/* Header - Glassy with entrance animation */}
@@ -237,7 +262,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-3 group">
-              <img src="/logo-full.png" alt="PagePalette" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
+              <img src="/logo-full.png" alt="PagePalette" width="160" height="40" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
             </a>
           </div>
 
@@ -488,16 +513,19 @@ export default function HomePage() {
 
           {/* CSS Marquee - optimized for performance */}
           <div className="animate-marquee gap-6 px-6">
-            {[...GALLERY_IMAGES, ...GALLERY_IMAGES].map((src, i) => (
+            {/* Only show 6 images on mobile for faster loading */}
+            {[...GALLERY_IMAGES.slice(0, 6), ...GALLERY_IMAGES.slice(0, 6)].map((src, i) => (
               <div
                 key={i}
                 className="flex-shrink-0 w-72 h-48 md:w-96 md:h-64 rounded-xl overflow-hidden border border-[#252525] relative"
               >
                 <img
                   src={src}
-                  alt={`JA Process ${i + 1}`}
+                  alt={`JA Process ${(i % 6) + 1}`}
                   loading="lazy"
                   decoding="async"
+                  width="384"
+                  height="256"
                   className="w-full h-full object-cover"
                 />
               </div>
