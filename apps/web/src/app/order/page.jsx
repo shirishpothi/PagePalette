@@ -195,24 +195,39 @@ export default function OrderPage() {
         const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
         setOrderId(newOrderId);
         
-        const response = await fetch('/api/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                bundleId: selectedBundle.id,
-                extraCount: extraSelections.length,
-                customerEmail: formData.email,
-                customerName: formData.name,
-                orderId: newOrderId,
-                orderMetadata: {
-                    role: role,
-                    items: ['Tree (Free)', ...bundleSelections.map(i => i.label), ...extraSelections.map(i => i.label)].join(', '),
-                }
-            }),
-        });
-        
-        const data = await response.json();
-        return data.clientSecret;
+        try {
+            const response = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bundleId: selectedBundle.id,
+                    extraCount: extraSelections.length,
+                    customerEmail: formData.email || undefined,
+                    customerName: formData.name || undefined,
+                    orderId: newOrderId,
+                    orderMetadata: {
+                        role: role,
+                        items: ['Tree (Free)', ...bundleSelections.map(i => i.label), ...extraSelections.map(i => i.label)].join(', '),
+                    }
+                }),
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Checkout session error:', errorData);
+                throw new Error(errorData.message || 'Failed to create checkout');
+            }
+            
+            const data = await response.json();
+            if (!data.clientSecret) {
+                throw new Error('No client secret returned');
+            }
+            return data.clientSecret;
+        } catch (error) {
+            console.error('Failed to create checkout session:', error);
+            setSubmitError('Unable to load payment form. Please try PayNow or Cash instead.');
+            throw error;
+        }
     }, [selectedBundle.id, extraSelections.length, formData.email, formData.name, role, bundleSelections, paymentMethod]);
 
     // Verification helpers

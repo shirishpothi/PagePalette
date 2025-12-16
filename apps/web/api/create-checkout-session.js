@@ -1,5 +1,10 @@
 import Stripe from 'stripe';
 
+// Initialize Stripe - check for API key
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('STRIPE_SECRET_KEY is not set');
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Price IDs for PagePalette products (in SGD)
@@ -21,6 +26,11 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Check for API key
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ error: 'Stripe not configured' });
   }
 
   try {
@@ -64,26 +74,19 @@ export default async function handler(req, res) {
     const returnUrl = `${origin}/order?session_id={CHECKOUT_SESSION_ID}&status=complete`;
 
     // Create checkout session with embedded mode
+    // Only use 'card' to avoid issues with unsupported payment methods
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
       line_items: lineItems,
       mode: 'payment',
       return_url: returnUrl,
-      customer_email: customerEmail,
+      customer_email: customerEmail || undefined,
       metadata: {
-        order_id: orderId,
-        customer_name: customerName,
+        order_id: orderId || '',
+        customer_name: customerName || '',
         bundle: bundleId,
         extra_count: String(extraCount || 0),
-        ...orderMetadata,
-      },
-      // Payment method options
-      payment_method_types: ['card', 'paynow', 'grabpay'],
-      // Customize checkout appearance
-      custom_text: {
-        submit: {
-          message: 'Your PagePalette order will be ready for collection at school after payment.',
-        },
+        ...(orderMetadata || {}),
       },
     });
 
@@ -98,4 +101,5 @@ export default async function handler(req, res) {
       message: error.message 
     });
   }
+}
 }
