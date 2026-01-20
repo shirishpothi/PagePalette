@@ -77,7 +77,7 @@ export default function AboutPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
+        <div className="min-h-screen bg-[#2d3f44] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
             {/* Skip to main content for accessibility */}
             <a 
                 href="#main-content" 
@@ -94,7 +94,7 @@ export default function AboutPage() {
             </div>
 
             {/* Header - Mobile responsive */}
-            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]">
+            <header className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#1a2a2e]/80 backdrop-blur-xl border-b border-[#1f1f1f]">
                 <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-3">
                         <a href="/" className="flex items-center gap-3">
@@ -103,10 +103,10 @@ export default function AboutPage() {
                     </div>
 
                     <nav className="hidden md:flex items-center gap-8">
-                        {["Home", "About Us", "Features", "Pricing", "Pre-Order"].map((item) => (
+                        {["Home", "About Us", "Features", "Pricing", "Order"].map((item) => (
                             <a
                                 key={item}
-                                href={item === "Home" ? "/" : item === "Pre-Order" ? "/order" : item === "About Us" ? "/about" : `/#${item.toLowerCase()}`}
+                                href={item === "Home" ? "/" : item === "Order" ? "/order" : item === "About Us" ? "/about" : `/#${item.toLowerCase()}`}
                                 onClick={(e) => handleNavClick(e, item)}
                                 className="text-sm text-[#888888] hover:text-white transition-colors font-montserrat relative group"
                             >
@@ -123,7 +123,7 @@ export default function AboutPage() {
                     </div>
 
                     <Button asChild variant="primary" size="sm" rightIcon={<ArrowRight size={14} />} className="hidden sm:flex">
-                        <a href="/order">Pre-Order Now</a>
+                        <a href="/order">Order Now</a>
                     </Button>
                     
                     {/* Mobile CTA */}
@@ -279,7 +279,7 @@ export default function AboutPage() {
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
                             <Button asChild variant="primary" size="xl">
-                                <a href="/order">Pre-Order Now</a>
+                                <a href="/order">Order Now</a>
                             </Button>
                         </div>
                     </div>
@@ -298,7 +298,7 @@ export default function AboutPage() {
                         Sustainable. Modular. Yours.
                     </p>
                     <p className="text-xs text-[#666666] font-montserrat">
-                        A Junior Achievement Singapore Company: PagePalette • © 2025
+                        A Junior Achievement Singapore Company: PagePalette • © 2026
                     </p>
                 </div>
             </footer>

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#2d3f44] flex items-center justify-center p-6 relative overflow-hidden font-sans">
             {/* Background Noise & Blur */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#36484d]/10 rounded-full blur-3xl" />
@@ -56,7 +56,7 @@ export default function NotFound() {
                     </Button>
                     <Button asChild variant="primary" size="lg" className="bg-[#4ADE80] text-black hover:bg-[#22C55E] font-bold font-proxima-sera">
                         <Link to="/order">
-                            Pre-Order Now
+                            Order Now
                             <ArrowRight size={16} className="ml-2" />
                         </Link>
                     </Button>

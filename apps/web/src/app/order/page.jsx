@@ -8,6 +8,7 @@ import {
 import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
+import { postJSON } from "../../utils/api-utils";
 
 // Lazy load Stripe components to avoid SSR issues
 const StripeCheckout = lazy(() => import("./StripeCheckout"));
@@ -74,7 +75,7 @@ export default function OrderPage() {
     // Let's use Step 15 for "Verification".
 
     const [selectedBundle, setSelectedBundle] = useState(BUNDLES[1]); // Default to Complete
-    
+
     // Form validation state
     const [formErrors, setFormErrors] = useState({});
     const [formTouched, setFormTouched] = useState({});
@@ -141,7 +142,7 @@ export default function OrderPage() {
     const allImportedItems = [...bundleSelections, ...extraSelections];
 
     // Form State
-    const [role, setRole] = useState("student"); // student | parent | teacher
+    const [role, setRole] = useState("student"); // student | parent | teacher | other
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -153,7 +154,22 @@ export default function OrderPage() {
         // Teacher Specific
         position: "",
         room: "",
+        // Other (non-school) Specific
+        phone: "",
+        address: "",
     });
+
+    // Browse mode state (view-only, no purchase)
+    const [browseMode, setBrowseMode] = useState(false);
+
+    // Check for browse mode from URL
+    useEffect(() => {
+        const browseParam = searchParams.get('browse');
+        if (browseParam === 'true') {
+            setBrowseMode(true);
+            setStep(2); // Go directly to PagePals selection/view
+        }
+    }, [searchParams]);
 
     // Payment
     const [paymentMethod, setPaymentMethod] = useState("paynow"); // PayNow is default
@@ -170,7 +186,7 @@ export default function OrderPage() {
     useEffect(() => {
         const sessionId = searchParams.get('session_id');
         const status = searchParams.get('status');
-        
+
         if (sessionId && status === 'complete') {
             // Fetch session details, process order (save to sheet, send emails), and show success
             fetch(`/api/checkout-session?session_id=${sessionId}&process_order=true`)
@@ -189,10 +205,10 @@ export default function OrderPage() {
     // Create Stripe checkout session when entering payment step with card selected
     const fetchClientSecret = useCallback(async () => {
         if (paymentMethod !== 'card') return null;
-        
+
         const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
         setOrderId(newOrderId);
-        
+
         try {
             const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
@@ -215,13 +231,13 @@ export default function OrderPage() {
                     }
                 }),
             });
-            
+
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Checkout session error:', errorData);
                 throw new Error(errorData.message || 'Failed to create checkout');
             }
-            
+
             const data = await response.json();
             if (!data.clientSecret) {
                 throw new Error('No client secret returned');
@@ -236,8 +252,8 @@ export default function OrderPage() {
 
     // Verification helpers
     const toggleConfirmation = (itemId) => {
-        setConfirmedItems(prev => 
-            prev.includes(itemId) 
+        setConfirmedItems(prev =>
+            prev.includes(itemId)
                 ? prev.filter(id => id !== itemId)
                 : [...prev, itemId]
         );
@@ -270,6 +286,10 @@ export default function OrderPage() {
             } else if (!validateEmail(formData.studentEmail)) {
                 errors.studentEmail = "Please enter a valid email";
             }
+        }
+        if (role === 'other') {
+            if (!formData.phone.trim()) errors.phone = "Phone number is required";
+            if (!formData.address.trim()) errors.address = "Delivery address is required";
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -344,7 +364,7 @@ export default function OrderPage() {
         const orderData = {
             "Order ID": newOrderId,
             "Date": orderDate,
-            "Order Type": "Pre-Order",
+            "Order Type": "Order",
             "Bundle": allItems.join(", ").includes("Starter") ? "Starter Bundle" : "Complete Bundle",
             "Name": formData.name,
             "Email": formData.email,
@@ -355,6 +375,8 @@ export default function OrderPage() {
             "Class": formData.studentClass || "N/A",
             "Position": formData.position || "N/A",
             "Room": role === 'teacher' ? (formData.room || "N/A") : "N/A",
+            "Phone": role === 'other' ? (formData.phone || "N/A") : "N/A",
+            "Address": role === 'other' ? (formData.address || "N/A") : "N/A",
             "Items": allItems.join(", "),
             "Total Amount": currentTotal.toFixed(2),
             "Payment Method": paymentMethod || "N/A",
@@ -362,32 +384,32 @@ export default function OrderPage() {
         };
 
         try {
-            // Call our API to save order and send emails
-            const response = await fetch("/api/order", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    orderData,
-                    customerEmail: formData.email,
-                    customerName: formData.name,
-                    orderId: newOrderId
-                })
+            // Call our API with retry logic for reliability
+            const result = await postJSON("/api/order", {
+                orderData,
+                customerEmail: formData.email,
+                customerName: formData.name,
+                orderId: newOrderId
+            }, {
+                retries: 3,
+                timeout: 15000, // 15 second timeout for order API
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Order API Error:", errorData);
+            if (!result.success) {
+                console.error("Order API Error:", result.error);
+                setSubmitError(result.error || "Failed to submit order. Please try again.");
+                // Still proceed to success to not block user after showing error
+                setTimeout(() => setStep(5), 2000);
+                return;
             }
 
             // Move to success step
             setStep(5);
         } catch (err) {
             console.error("Order Submission Failed", err);
-            setSubmitError("Failed to submit order. Please try again.");
-            // Still proceed to success to not block user after showing error briefly
-            setTimeout(() => setStep(5), 1500);
+            setSubmitError("Failed to submit order. Please check your connection and try again.");
+            // Still proceed to success to not block user after showing error
+            setTimeout(() => setStep(5), 2000);
         } finally {
             setIsSubmitting(false);
         }
@@ -414,16 +436,16 @@ export default function OrderPage() {
             <div className="text-center mb-4 md:mb-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Choose Your Bundle</h2>
                 <p className="text-sm md:text-base text-[#888888] font-montserrat mb-3 md:mb-4">Select standard or customization package</p>
-                
+
                 {/* Social Proof - Hidden on very small screens for space */}
                 <div className="hidden sm:flex items-center justify-center gap-2 mb-4 md:mb-6">
                     <div className="flex -space-x-2">
-                        {[1,2,3,4,5].map((_, i) => (
+                        {[1, 2, 3, 4, 5].map((_, i) => (
                             <div key={i} className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
                         ))}
                     </div>
                 </div>
-                
+
                 <img src="/logo-full.png" alt="PagePalette" className="h-12 md:h-16 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
             </div>
 
@@ -434,11 +456,11 @@ export default function OrderPage() {
                         onClick={() => handleBundleSelect(bundle)}
                         className={`
               relative p-5 md:p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
-              ${bundle.id === 'complete' 
-                  ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
-                  : selectedBundle.id === bundle.id
-                      ? "bg-[#36484d]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/10"
-                      : "bg-[#0f1115]/80 border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"}
+              ${bundle.id === 'complete'
+                                ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
+                                : selectedBundle.id === bundle.id
+                                    ? "bg-[#36484d]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/10"
+                                    : "bg-[#0f1115]/80 border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"}
             `}
                     >
                         {/* Best Value Badge for Complete Bundle - positioned in corner with proper offset */}
@@ -488,7 +510,7 @@ export default function OrderPage() {
                     </div>
                 ))}
             </div>
-            
+
             {/* Minimal eco-friendly indicator */}
             <div className="mt-4 md:mt-8 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
                 <Leaf size={14} className="text-[#4ADE80]" />
@@ -569,15 +591,20 @@ export default function OrderPage() {
     const renderStep2_Selection = () => (
         <div className="space-y-4 md:space-y-6 animate-fade-in-up">
             <div className="text-center mb-4 md:mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Customize Your Palette</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">
+                    {browseMode ? "Browse PagePals" : "Customize Your Palette"}
+                </h2>
                 <p className="text-sm md:text-base text-[#888888] font-montserrat">
-                    {selectedBundle.freeCount > 0
-                        ? `Choose your ${selectedBundle.freeCount} included PagePals`
-                        : "Add extra PagePals to your order"}
+                    {browseMode 
+                        ? "Explore our full collection of PagePal designs"
+                        : selectedBundle.freeCount > 0
+                            ? `Choose your ${selectedBundle.freeCount} included PagePals`
+                            : "Add extra PagePals to your order"}
                 </p>
             </div>
 
-            {/* Mobile: Summary card at top for visibility */}
+            {/* Mobile: Summary card at top for visibility - hide in browse mode */}
+            {!browseMode && (
             <div className="lg:hidden">
                 <Card className="p-4 bg-[#0f1115] border-[#1f1f1f] mb-4">
                     <div className="flex items-center justify-between">
@@ -591,6 +618,7 @@ export default function OrderPage() {
                     </div>
                 </Card>
             </div>
+            )}
 
             <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_300px] gap-4 md:gap-8">
                 {/* Left: Options Grid */}
@@ -664,7 +692,8 @@ export default function OrderPage() {
                     </div>
                 </div>
 
-                {/* Right: Summary Sticky - Hidden on mobile (using top card instead) */}
+                {/* Right: Summary Sticky - Hidden on mobile and in browse mode */}
+                {!browseMode && (
                 <div className="hidden lg:block space-y-6">
                     <Card className="p-6 bg-[#0f1115] border-[#1f1f1f] sticky top-24">
                         <h3 className="font-bold text-white mb-4">Current Selection</h3>
@@ -702,9 +731,40 @@ export default function OrderPage() {
                         </div>
                     </Card>
                 </div>
+                )}
+
+                {/* Browse mode sidebar */}
+                {browseMode && (
+                <div className="hidden lg:block space-y-6">
+                    <Card className="p-6 bg-[#0f1115] border-[#1f1f1f] sticky top-24">
+                        <h3 className="font-bold text-white mb-4">PagePal Collection</h3>
+                        <p className="text-sm text-[#888888] mb-4">
+                            Browse our full collection of {STL_OPTIONS.length} unique PagePal designs. Each one adds personality to your notebook!
+                        </p>
+                        <div className="space-y-2">
+                            <HoverBorderGradient
+                                containerClassName="w-full rounded-xl"
+                                className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white flex items-center justify-center gap-2"
+                                duration={0.8}
+                                intensity="strong"
+                                onClick={() => {
+                                    setBrowseMode(false);
+                                    setStep(1);
+                                }}
+                            >
+                                Start Order <ArrowRight size={16} />
+                            </HoverBorderGradient>
+                            <Button className="w-full" variant="ghost" onClick={() => navigate("/")}>
+                                Back to Home
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+                )}
             </div>
 
-            {/* Mobile: Fixed bottom bar for navigation with safe area */}
+            {/* Mobile: Fixed bottom bar for navigation with safe area - hide in browse mode */}
+            {!browseMode && (
             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
                 <div className="flex items-center justify-between gap-3">
                     <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="flex-shrink-0">
@@ -719,6 +779,24 @@ export default function OrderPage() {
                     </Button>
                 </div>
             </div>
+            )}
+            
+            {/* Browse mode mobile bottom bar */}
+            {browseMode && (
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#0f1115]/95 backdrop-blur-xl border-t border-[#1f1f1f] p-4 z-40" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
+                <div className="flex items-center justify-between gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="flex-shrink-0">
+                        <ArrowLeft size={16} /> Home
+                    </Button>
+                    <div className="text-center">
+                        <div className="text-xs text-[#888888]">{STL_OPTIONS.length} designs</div>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => { setBrowseMode(false); setStep(1); }} className="flex-shrink-0">
+                        Order <ArrowRight size={16} />
+                    </Button>
+                </div>
+            </div>
+            )}
             {/* Spacer for fixed bottom bar on mobile - account for safe area */}
             <div className="lg:hidden h-24" />
         </div>
@@ -734,11 +812,12 @@ export default function OrderPage() {
             <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-4 md:p-8 space-y-4 md:space-y-8">
 
                 {/* Role Type - Horizontal on mobile for less scrolling */}
-                <div className="grid grid-cols-3 gap-2 md:gap-3">
+                <div className="grid grid-cols-4 gap-2 md:gap-3">
                     {[
                         { id: 'student', icon: GraduationCap, label: 'Student' },
                         { id: 'parent', icon: User, label: 'Parent' },
-                        { id: 'teacher', icon: Briefcase, label: 'Teacher' }
+                        { id: 'teacher', icon: Briefcase, label: 'Teacher' },
+                        { id: 'other', icon: Home, label: 'Other' }
                     ].map(r => (
                         <button
                             key={r.id}
@@ -881,6 +960,42 @@ export default function OrderPage() {
                                     className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
                                     placeholder="e.g. 4N-12"
                                 />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Other (Non-School) Specific */}
+                    {role === 'other' && (
+                        <div className="space-y-4 pt-4 border-t border-[#252525]">
+                            <div className="bg-[#4ADE80]/5 border border-[#4ADE80]/20 rounded-xl p-4">
+                                <div className="flex items-start gap-3">
+                                    <ShieldCheck size={20} className="text-[#4ADE80] flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm text-white font-medium mb-1">Your information is safe with us</p>
+                                        <p className="text-xs text-[#888888]">We collect contact details only for delivery coordination. Your information is handled securely and never shared with third parties.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-[#666] uppercase">Phone Number <span className="text-red-400">*</span></label>
+                                    <input
+                                        value={formData.phone}
+                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                        className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                        placeholder="+65 XXXX XXXX"
+                                        type="tel"
+                                    />
+                                </div>
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-xs font-bold text-[#666] uppercase">Delivery Address <span className="text-red-400">*</span></label>
+                                    <textarea
+                                        value={formData.address}
+                                        onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                        className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white min-h-[80px] resize-none"
+                                        placeholder="Enter your full delivery address"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1061,11 +1176,11 @@ export default function OrderPage() {
                                         {submitError}
                                     </div>
                                 )}
-                                <Button 
-                                    className="w-full" 
-                                    size="lg" 
-                                    variant="primary" 
-                                    onClick={handleSubmitOrder} 
+                                <Button
+                                    className="w-full"
+                                    size="lg"
+                                    variant="primary"
+                                    onClick={handleSubmitOrder}
                                     disabled={isSubmitting}
                                     aria-busy={isSubmitting}
                                 >
@@ -1096,7 +1211,7 @@ export default function OrderPage() {
                                 </div>
                             </div>
                         )}
-                        
+
                         <Button className="w-full mt-3" variant="ghost" size="sm" onClick={() => setStep(3)} aria-label="Go back to details">
                             Back to Details
                         </Button>
@@ -1201,7 +1316,7 @@ export default function OrderPage() {
 
                                 <div className="text-center mb-4 md:mb-6 pt-2">
                                     <h2 className="text-2xl md:text-3xl font-bold text-[#1e293b]" style={{ fontFamily: 'serif' }}>PagePalette</h2>
-                                    <div className="text-[10px] md:text-xs text-[#64748b]">Est. 2025 • Nexus School</div>
+                                    <div className="text-[10px] md:text-xs text-[#64748b]">Est. 2026 • Nexus School</div>
                                 </div>
 
                                 <div className="space-y-3 md:space-y-4 text-xs md:text-sm font-medium relative z-10" style={{ lineHeight: '28px' }}>
@@ -1255,9 +1370,9 @@ export default function OrderPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
-            {/* Background Noise */}
-            <div className="fixed inset-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-0"></div>
+        <div className="min-h-screen bg-[#2d3f44] text-white font-sans overflow-x-hidden selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
+            {/* Background gradient - inline instead of external URL for faster loading */}
+            <div className="fixed inset-0 pointer-events-none opacity-10 bg-gradient-to-br from-[#36484d]/5 via-transparent to-[#764134]/5 z-0"></div>
 
             {/* Header - Glassy with enhanced blur */}
             <header className="fixed top-0 left-0 right-0 h-14 md:h-16 bg-white/5 backdrop-blur-3xl border-b border-white/10 shadow-xl shadow-black/20 z-50 px-3 md:px-6 flex items-center justify-between" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -1277,12 +1392,12 @@ export default function OrderPage() {
                         </p>
                     </div>
                 </div>
-                
+
                 {/* Progress indicator on mobile */}
                 <div className="flex items-center gap-1 md:hidden">
                     {[1, 2, 3, 4, 5].map(s => (
-                        <div 
-                            key={s} 
+                        <div
+                            key={s}
                             className={`w-2 h-2 rounded-full transition-all ${s <= step ? 'bg-[#4ADE80]' : 'bg-[#333]'} ${s === step ? 'w-4' : ''}`}
                         />
                     ))}

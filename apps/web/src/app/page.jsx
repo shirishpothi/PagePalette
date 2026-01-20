@@ -58,62 +58,7 @@ const floatVariants = {
 
 // --- Holiday Components ---
 
-const SnowEffect = () => {
-  // Skip on mobile entirely for performance
-  const [isMobile, setIsMobile] = React.useState(true);
-  
-  React.useEffect(() => {
-    setIsMobile(window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  }, []);
-  
-  // Don't render on mobile at all
-  if (isMobile) return null;
-  
-  // Reduced snowflakes for better performance (10 instead of 12)
-  // Uses CSS animations with will-change for GPU acceleration
-  const snowflakes = Array.from({ length: 10 }).map((_, i) => ({
-    left: `${(i * 10) % 100}%`,
-    animationDuration: `${4 + (i % 3)}s`,
-    animationDelay: `${(i % 4) * 0.5}s`,
-    opacity: 0.25 + (i % 3) * 0.15,
-    size: 2 + (i % 3) * 2,
-  }));
-
-  return (
-    <div 
-      className="fixed inset-0 pointer-events-none z-50 overflow-hidden" 
-      aria-hidden="true"
-    >
-      {snowflakes.map((flake, i) => (
-        <div
-          key={i}
-          className="absolute bg-white rounded-full snow-flake"
-          style={{
-            left: flake.left,
-            top: -10,
-            width: flake.size,
-            height: flake.size,
-            opacity: flake.opacity,
-            animation: `fall ${flake.animationDuration} linear infinite`,
-            animationDelay: flake.animationDelay,
-          }}
-        />
-      ))}
-      <style jsx global>{`
-        @keyframes fall {
-          0% { transform: translateY(-10vh) translateX(0); }
-          100% { transform: translateY(110vh) translateX(15px); }
-        }
-        .snow-flake {
-          will-change: transform;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .snow-flake { animation: none !important; display: none; }
-        }
-      `}</style>
-    </div>
-  );
-};
+// SnowEffect removed - keeping only Christmas tree snow
 
 // Christmas Tree Widget with localized snow effect and PagePalette ornament
 // Hidden on mobile for performance
@@ -227,7 +172,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
+    <div className="min-h-screen bg-[#2d3f44] overflow-hidden font-sans selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
       {/* Skip to main content for accessibility */}
       <a 
         href="#main-content" 
@@ -236,7 +181,7 @@ export default function HomePage() {
         Skip to main content
       </a>
       
-      <SnowEffect />
+      {/* Snow effect removed - keeping only Christmas tree snow */}
       <ChristmasTreeWidget />
 
       {/* Dynamic Background */}
@@ -257,7 +202,7 @@ export default function HomePage() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "circOut" }}
-        className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#0a0a0a]/60 backdrop-blur-xl border-b border-[#1f1f1f]"
+        className="fixed top-0 left-0 right-0 h-14 md:h-16 z-50 bg-[#1a2a2e]/80 backdrop-blur-xl border-b border-[#1f1f1f]"
       >
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
@@ -268,8 +213,8 @@ export default function HomePage() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {["Home", "About Us", "Features", "Pricing", "Pre-Order"].map((item, i) => {
-              const href = item === "Home" ? "/" : item === "Pre-Order" ? "/order" : item === "About Us" ? "/about" : `/#${item.toLowerCase()}`;
+            {["Home", "About Us", "Features", "Pricing", "Order"].map((item, i) => {
+              const href = item === "Home" ? "/" : item === "Order" ? "/order" : item === "About Us" ? "/about" : `/#${item.toLowerCase()}`;
               const isHashLink = href.startsWith('/#');
               return (
                 <a
@@ -305,7 +250,7 @@ export default function HomePage() {
           </div>
 
           <Button asChild variant="primary" size="sm" className="hidden sm:flex" rightIcon={<ArrowRight size={14} />}>
-            <a href="/order">Pre-Order</a>
+            <a href="/order">Order Now</a>
           </Button>
 
           {/* Mobile CTA button */}
@@ -373,7 +318,7 @@ export default function HomePage() {
                 duration={0.8}
                 intensity="strong"
               >
-                Pre-Order Now <ArrowRight size={20} />
+                Order Now <ArrowRight size={20} />
               </HoverBorderGradient>
             </motion.div>
 
@@ -439,38 +384,15 @@ export default function HomePage() {
                 <motion.div
                   variants={floatVariants}
                   animate="animate"
-                  className="relative perspective-1000"
+                  className="relative"
                 >
-                  {/* Main Notebook Representation */}
-                  <motion.div
-                    whileHover={{ rotateY: 10, rotateX: 5 }}
-                    className="w-56 h-72 bg-gradient-to-br from-[#2a3a40] to-[#1a2a30] rounded-lg shadow-2xl relative overflow-hidden border border-[#36484d]/30 transition-transform duration-500"
-                  >
-                    {/* Notebook holes */}
-                    <div className="absolute left-3 top-4 bottom-4 flex flex-col justify-around">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="w-3 h-3 rounded-full bg-[#0a0a0a] shadow-inner" />
-                      ))}
-                    </div>
-                    {/* PagePal slots representation */}
-                    <div className="absolute right-5 top-8 grid grid-cols-2 gap-3">
-                      {["#4ADE80", "#60A5FA", "#F59E0B", "#A78BFA", "#F472B6", "#22D3EE"].map((color, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.5 + (i * 0.1), type: "spring" }}
-                          whileHover={{ scale: 1.2, rotate: 180 }}
-                          className="w-8 h-8 rounded-lg shadow-lg cursor-pointer"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                    {/* Logo/Branding on cover */}
-                    <div className="absolute bottom-4 right-4 opacity-50">
-                      <Leaf className="text-white w-8 h-8" />
-                    </div>
-                  </motion.div>
+                  {/* Marketing Image */}
+                  <motion.img
+                    src="/marketing-image.png"
+                    alt="PagePalette Notebooks"
+                    whileHover={{ scale: 1.05 }}
+                    className="w-80 md:w-96 h-auto rounded-xl shadow-2xl"
+                  />
                 </motion.div>
               </div>
 
@@ -559,25 +481,35 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: Leaf, title: "Eco-Friendly", desc: "Made from 100% recycled materials. Every PagePalette notebook helps reduce waste and promotes sustainability.", color: "from-[#4ADE80] to-[#22C55E]", shadow: "#22C55E" },
-              { icon: Palette, title: "Fully Customizable", desc: "Attach your favorite PagePals like Jibbitz on Crocs. Swap them anytime to match your mood, subject, or season.", color: "from-[#764134] to-[#8d5244]", shadow: "#764134" },
-              { icon: Gift, title: "Collect & Trade", desc: "Build your collection, trade with friends, and express your unique style. New designs released regularly!", color: "from-[#36484d] to-[#4a5c62]", shadow: "#36484d" }
+              { icon: Leaf, title: "Eco-Friendly", desc: "Made from 100% recycled materials. Every PagePalette notebook helps reduce waste and promotes sustainability.", color: "from-[#4ADE80] to-[#22C55E]", shadow: "#22C55E", image: "/ja-process/image7.jpg" },
+              { icon: Palette, title: "Fully Customizable", desc: "Attach your favorite PagePals like Jibbitz on Crocs. Swap them anytime to match your mood, subject, or season.", color: "from-[#764134] to-[#8d5244]", shadow: "#764134", image: "/ja-process/image10.jpg" },
+              { icon: Gift, title: "Collect & Trade", desc: "Build your collection, trade with friends, and express your unique style. New designs released regularly!", color: "from-[#36484d] to-[#4a5c62]", shadow: "#36484d", image: "/ja-process/image11.jpg" }
             ].map((feature, i) => (
               <motion.div
                 key={i}
                 variants={itemVariants}
                 whileHover={{ y: -10 }}
-                className="bg-[#0f1115] rounded-2xl border border-[#1f1f1f] p-8 hover:border-[#36484d]/50 transition-colors group"
+                className="bg-[#0f1115] rounded-2xl border border-[#1f1f1f] overflow-hidden hover:border-[#36484d]/50 transition-colors group"
               >
-                <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[${feature.shadow}]/20`}>
-                  <feature.icon size={26} className="text-white" />
+                <div className="w-full h-40 overflow-hidden">
+                  <img 
+                    src={feature.image} 
+                    alt={feature.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 font-proxima-sera">
-                  {feature.title}
-                </h3>
-                <p className="text-[#888888] font-montserrat leading-relaxed">
-                  {feature.desc}
-                </p>
+                <div className="p-6">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4 -mt-12 relative z-10 shadow-lg shadow-[${feature.shadow}]/20 border-4 border-[#0f1115]`}>
+                    <feature.icon size={22} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 font-proxima-sera">
+                    {feature.title}
+                  </h3>
+                  <p className="text-[#888888] font-montserrat leading-relaxed text-sm">
+                    {feature.desc}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -635,12 +567,13 @@ export default function HomePage() {
                 cta: "Get Complete Bundle"
               },
               { 
-                title: "Extra PagePals", 
+                title: "View PagePals", 
                 price: "3", 
+                priceLabel: "each",
                 items: ["20+ designs available", "Mix and match", "Collect them all!"], 
-                link: "/order", 
+                link: "/order?browse=true", 
                 highlight: false,
-                cta: "Browse Designs"
+                cta: "Browse Collection"
               }
             ].map((plan, i) => (
               <motion.div
@@ -655,7 +588,7 @@ export default function HomePage() {
                 <h3 className={`text-2xl font-bold mb-2 font-proxima-sera ${plan.highlight ? "text-[#E4DFDA]" : "text-white"}`}>{plan.title}</h3>
                 <div className="mb-4">
                   <span className={`text-5xl font-bold font-proxima-sera ${plan.highlight ? "text-[#4ADE80]" : "text-white"}`}>${plan.price}</span>
-                  <span className={`ml-2 font-montserrat ${plan.highlight ? "text-[#E4DFDA]/80" : "text-[#888888]"}`}>SGD</span>
+                  <span className={`ml-2 font-montserrat ${plan.highlight ? "text-[#E4DFDA]/80" : "text-[#888888]"}`}>{plan.priceLabel || "SGD"}</span>
                 </div>
 
                 <ul className="space-y-3 mb-8 flex-grow">
@@ -715,7 +648,7 @@ export default function HomePage() {
               />
             </div>
             <p className="text-xl text-[#888888] mb-10 font-montserrat max-w-xl mx-auto relative z-10">
-              Pre-order now and be among the first to get your customizable notebook.
+              Order now and get your customizable notebook.
             </p>
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -729,7 +662,7 @@ export default function HomePage() {
                 duration={0.8}
                 intensity="strong"
               >
-                Pre-Order Now <ArrowRight size={20} />
+                Order Now <ArrowRight size={20} />
               </HoverBorderGradient>
             </motion.div>
           </div>
@@ -737,7 +670,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-12 md:py-16 px-6 border-t border-[#1f1f1f] z-10 bg-[#0a0a0a]">
+      <footer className="relative py-12 md:py-16 px-6 border-t border-[#1f1f1f] z-10 bg-[#1a2a2e]">
         <div className="max-w-6xl mx-auto text-center">
           {/* TextHoverEffect for PagePalette */}
           <div className="h-16 sm:h-20 md:h-28 lg:h-32 flex items-center justify-center mb-4">
@@ -747,7 +680,7 @@ export default function HomePage() {
             Sustainable. Modular. Yours.
           </p>
           <p className="text-xs text-[#666666] font-montserrat">
-            A Junior Achievement Singapore Company: PagePalette • © 2025
+            A Junior Achievement Singapore Company: PagePalette • © 2026
           </p>
         </div>
       </footer>
