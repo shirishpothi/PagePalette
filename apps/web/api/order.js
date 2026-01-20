@@ -24,23 +24,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { orderData, customerEmail, customerName, orderId } = req.body;
+    const { orderData, customerEmail, customerName, orderId, isDemo } = req.body;
 
-    // 1. Save to SheetDB
-    const sheetPayload = { data: [orderData] };
-    
-    const sheetResponse = await fetch("https://sheetdb.io/api/v1/i3ywkjbojouc9", {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.SHEETDB_API_TOKEN}`
-      },
-      body: JSON.stringify(sheetPayload)
-    });
+    // 1. Save to SheetDB (only if not demo)
+    if (!isDemo) {
+      const sheetPayload = { data: [orderData] };
+      
+      const sheetResponse = await fetch("https://sheetdb.io/api/v1/i3ywkjbojouc9", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.SHEETDB_API_TOKEN}`
+        },
+        body: JSON.stringify(sheetPayload)
+      });
 
-    if (!sheetResponse.ok) {
-      console.error("SheetDB Error:", await sheetResponse.text());
+      if (!sheetResponse.ok) {
+        console.error("SheetDB Error:", await sheetResponse.text());
+      }
     }
 
     // 2. Send confirmation email to customer
@@ -60,7 +62,7 @@ export default async function handler(req, res) {
           from: process.env.FROM_EMAIL ? `PagePalette Order Service <${process.env.FROM_EMAIL.split('<')[1] || process.env.FROM_EMAIL}>` : 'PagePalette Order Service <orders@resend.dev>',
           to: customerEmail,
           bcc: 'shirish.pothi.27@nexus.edu.sg',
-          subject: `Welcome to PagePalette! (Order #${orderId})`,
+          subject: `${isDemo ? '[DEMO] ' : ''}Welcome to PagePalette! (Order #${orderId})`,
           html: `
       <!DOCTYPE html>
       <html>
@@ -76,6 +78,9 @@ export default async function handler(req, res) {
           .content { padding: 40px; }
           .greeting { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; }
           .message { color: #555; margin-bottom: 30px; font-size: 16px; }
+          .demo-notice { background: #fee2e2; border: 2px solid #fca5a5; border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+          .demo-title { color: #dc2626; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+          .demo-text { color: #7f1d1d; font-size: 13px; }
           .receipt-box { background: #f9f9f9; border: 2px dashed #eee; border-radius: 12px; padding: 25px; margin-bottom: 30px; }
           .action-card { background: #fff7ed; border: 1px solid #ffedd5; padding: 25px; border-radius: 12px; text-align: center; }
           .action-title { font-weight: bold; color: #9a3412; font-size: 18px; margin-bottom: 10px; }
@@ -91,6 +96,13 @@ export default async function handler(req, res) {
           </div>
           
           <div class="content">
+             ${isDemo ? `
+             <div class="demo-notice">
+               <div class="demo-title">⚠️ Demo Mode</div>
+               <div class="demo-text">This is a demo order. PagePalette concluded operations on December 31, 2025. This email is sent to show what a real order confirmation would look like.</div>
+             </div>
+             ` : ''}
+
              <div class="greeting">Hi ${customerName}! 👋</div>
              <p class="message">
                We're so excited you've chosen PagePalette! Your customizable notebook order has been received. 

@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft, Check, Sparkles, CreditCard, Banknote, ShieldCheck, Mail,
     User, Briefcase, GraduationCap, School, ChevronRight, Package, ArrowRight,
     Download, Home, BookOpen, Leaf, Heart, Loader2
 } from "lucide-react";
+import { motion } from "motion/react";
 import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
@@ -57,6 +58,66 @@ const BUNDLES = [
 
 const YEARS = ["K", ...Array.from({ length: 13 }, (_, i) => (i + 1).toString())];
 const CLASSES = Array.from({ length: 11 }, (_, i) => i.toString()); // 0-10
+
+// --- Helper Component for Browse PagePals Card with Animated Border ---
+function BrowsePagePalsCard({ onClick }) {
+    const gradientColor = "#4ADE80";
+    const hexToRgba = (hex, alpha = 0) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
+    const gradientSize = { w: "30%", h: "60%" };
+
+    const movingMap = useMemo(() => ({
+        TOP: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 0%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+        LEFT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 0% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+        BOTTOM: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 100%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+        RIGHT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 100% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
+    }), []);
+
+    return (
+        <div className="mt-8 md:mt-12 max-w-4xl mx-auto">
+            <div
+                onClick={onClick}
+                className="relative p-px rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden"
+            >
+                {/* Animated trace border */}
+                <motion.div
+                    className="absolute inset-0 rounded-2xl"
+                    style={{
+                        filter: "blur(2px)",
+                        zIndex: 0,
+                    }}
+                    initial={{ background: movingMap["TOP"] }}
+                    animate={{
+                        background: [movingMap["TOP"], movingMap["LEFT"], movingMap["BOTTOM"], movingMap["RIGHT"], movingMap["TOP"]],
+                    }}
+                    transition={{ ease: "linear", duration: 4, repeat: Infinity }}
+                />
+                {/* Background layer to hide inner border */}
+                <div className="absolute inset-[2px] bg-[#0f1115] rounded-2xl z-1" />
+
+                {/* Content */}
+                <div className="relative z-10 p-5 md:p-8 rounded-2xl flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex-1">
+                            <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
+                            <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
+                        </div>
+                        <div className="text-3xl md:text-5xl ml-4">👀</div>
+                    </div>
+
+                    <div className="pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
+                        View all {STL_OPTIONS.length} PagePal designs
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 // --- Main Component ---
 
@@ -396,7 +457,8 @@ export default function OrderPage() {
                 orderData,
                 customerEmail: formData.email,
                 customerName: formData.name,
-                orderId: newOrderId
+                orderId: newOrderId,
+                isDemo: !PAYMENTS_ENABLED
             }, {
                 retries: 3,
                 timeout: 15000, // 15 second timeout for order API
@@ -518,28 +580,11 @@ export default function OrderPage() {
                 ))}
             </div>
 
-            {/* Browse PagePals Option */}
-            <div className="mt-8 md:mt-12 max-w-4xl mx-auto">
-                <div
-                    onClick={() => {
-                        setBrowseMode(true);
-                        setStep(2);
-                    }}
-                    className="relative p-5 md:p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98] bg-gradient-to-br from-[#2a3a40]/30 to-[#1a2a30]/20 border-[#36484d] hover:border-[#4ADE80]/50 hover:bg-gradient-to-br hover:from-[#36484d]/40 hover:to-[#2a3a40]/30"
-                >
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
-                            <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
-                        </div>
-                        <div className="text-3xl md:text-5xl ml-4">👀</div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
-                        View all {STL_OPTIONS.length} PagePal designs
-                    </div>
-                </div>
-            </div>
+            {/* Browse PagePals Option with Animated Border */}
+            <BrowsePagePalsCard onClick={() => {
+                setBrowseMode(true);
+                setStep(2);
+            }} />
 
             {/* Minimal eco-friendly indicator */}
             <div className="mt-4 md:mt-8 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
@@ -1089,13 +1134,9 @@ export default function OrderPage() {
                         <div className="w-16 h-16 bg-[#36484d]/30 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Heart size={32} className="text-[#4ADE80]" />
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-4">Thank You for Your Interest!</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-4">Review Your Order</h2>
                         <p className="text-[#888888] font-montserrat mb-6 leading-relaxed">
-                            PagePalette was proudly operated as a <span className="text-white font-semibold">Junior Achievement Singapore</span> company. 
-                            Our company officially concluded operations on <span className="text-[#4ADE80] font-semibold">December 31, 2025</span>.
-                        </p>
-                        <p className="text-[#666] font-montserrat text-sm mb-8">
-                            While we're no longer accepting orders, you can still explore our order flow and see what we built!
+                            You can see your complete order summary below. Continue to view your digital receipt!
                         </p>
                         <HoverBorderGradient
                             containerClassName="w-full rounded-xl"
@@ -1104,7 +1145,7 @@ export default function OrderPage() {
                             intensity="strong"
                             onClick={() => setStep(45)}
                         >
-                            <span>Continue Demo</span>
+                            <span>View Receipt</span>
                             <ArrowRight size={16} />
                         </HoverBorderGradient>
                     </div>
@@ -1432,28 +1473,31 @@ export default function OrderPage() {
             </div>
 
             <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">
-                {isDemo ? "Thank You for Exploring PagePalette!" : "Order Placed!"}
+                {isDemo ? "Your Order Summary" : "Order Placed!"}
             </h2>
             <p className="text-sm md:text-base text-[#CCCCCC] mb-6 md:mb-12 max-w-lg mx-auto px-2">
                 {isDemo 
-                    ? "This is a demo receipt. PagePalette concluded operations on December 31, 2025 as a JA Singapore company."
+                    ? "Your digital receipt is below."
                     : "Complete your payment and send a screenshot to finalize your order."}
             </p>
+
+            {isDemo && (
+                <div className="mb-6 md:mb-12 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                    <p className="text-red-400 text-sm font-medium">⚠️ Demo Mode: This is not an actual order. PagePalette concluded operations on December 31, 2025.</p>
+                </div>
+            )}
 
             <div className="grid md:grid-cols-2 gap-4 md:gap-8 text-left">
                 <div className="space-y-4 md:space-y-6">
                     <h3 className="font-bold text-white border-b border-[#252525] pb-2 text-sm md:text-base">
-                        {isDemo ? "About This Demo" : "What's Next?"}
+                        {isDemo ? "About PagePalette" : "What's Next?"}
                     </h3>
 
                     {isDemo ? (
                         <div className="bg-[#151515] p-4 md:p-6 rounded-2xl border border-[#252525]">
-                            <p className="text-white font-medium mb-2 text-sm md:text-base">PagePalette JA Company</p>
-                            <p className="text-xs md:text-sm text-[#888888] mb-3">
-                                We were a Junior Achievement Singapore student company that created sustainable notebooks with 3D-printed accessories.
-                            </p>
-                            <p className="text-[10px] md:text-xs text-[#666]">
-                                Thank you for checking out what we built! 💚
+                            <p className="text-white font-medium mb-2 text-sm md:text-base">Our Story</p>
+                            <p className="text-xs md:text-sm text-[#888888]">
+                                PagePalette was a Junior Achievement Singapore student company creating sustainable notebooks with 3D-printed PagePal accessories.
                             </p>
                         </div>
                     ) : paymentMethod === 'paynow' ? (
