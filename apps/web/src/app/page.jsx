@@ -698,9 +698,6 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[#4ADE80]/0 group-hover:bg-[#4ADE80]/10 rounded-lg blur-xl transition-all duration-300 -z-10" />
             </div>
           </a>
-          <p className="text-sm text-[#888888] font-montserrat mb-2 italic">
-            Sustainable. Modular. Yours.
-          </p>
           <p className="text-xs text-[#666666] font-montserrat">
             A Junior Achievement Singapore Company: PagePalette • © 2025
           </p>

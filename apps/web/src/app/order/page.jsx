@@ -518,6 +518,29 @@ export default function OrderPage() {
                 ))}
             </div>
 
+            {/* Browse PagePals Option */}
+            <div className="mt-8 md:mt-12 max-w-4xl mx-auto">
+                <div
+                    onClick={() => {
+                        setBrowseMode(true);
+                        setStep(2);
+                    }}
+                    className="relative p-5 md:p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98] bg-gradient-to-br from-[#2a3a40]/30 to-[#1a2a30]/20 border-[#36484d] hover:border-[#4ADE80]/50 hover:bg-gradient-to-br hover:from-[#36484d]/40 hover:to-[#2a3a40]/30"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                            <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
+                            <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
+                        </div>
+                        <div className="text-3xl md:text-5xl ml-4">👀</div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
+                        View all {STL_OPTIONS.length} PagePal designs
+                    </div>
+                </div>
+            </div>
+
             {/* Minimal eco-friendly indicator */}
             <div className="mt-4 md:mt-8 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
                 <Leaf size={14} className="text-[#4ADE80]" />
@@ -1075,13 +1098,14 @@ export default function OrderPage() {
                             While we're no longer accepting orders, you can still explore our order flow and see what we built!
                         </p>
                         <HoverBorderGradient
-                            containerClassName="inline-block rounded-xl"
-                            className="px-8 py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                            containerClassName="w-full rounded-xl"
+                            className="w-full px-8 py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white flex items-center justify-center gap-2"
                             duration={0.8}
                             intensity="strong"
                             onClick={() => setStep(45)}
                         >
-                            Continue Demo <ArrowRight size={16} className="inline ml-2" />
+                            <span>Continue Demo</span>
+                            <ArrowRight size={16} />
                         </HoverBorderGradient>
                     </div>
                 </div>
@@ -1287,14 +1311,16 @@ export default function OrderPage() {
         );
     };
 
-    // Processing step with notebook page-turn transition
-    const renderStep45_Processing = () => {
-        // Auto-advance to receipt after animation completes
-        useEffect(() => {
+    // Auto-advance from processing step after animation completes
+    useEffect(() => {
+        if (step === 45) {
             const timer = setTimeout(() => setStep(5), 2500);
             return () => clearTimeout(timer);
-        }, []);
+        }
+    }, [step]);
 
+    // Processing step with notebook page-turn transition
+    const renderStep45_Processing = () => {
         return (
             <div className="max-w-md mx-auto text-center py-16">
                 {/* Notebook page-turn animation container */}
