@@ -469,7 +469,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {isDev ? (
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         ) : null}
-        <link rel="icon" href="/src/__create/favicon.png" />
+        <link rel="icon" href="/logo.png" />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>

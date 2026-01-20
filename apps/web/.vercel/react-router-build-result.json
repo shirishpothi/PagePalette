@@ -61,9 +61,9 @@
     }
   },
   "reactRouterConfig": {
-    "appDirectory": "/Users/shirishpothi/Downloads/create-anything/apps/web/src/app",
+    "appDirectory": "/Users/shirishpothi/Desktop/School/JA/create-anything/apps/web/src/app",
     "basename": "/",
-    "buildDirectory": "/Users/shirishpothi/Downloads/create-anything/apps/web/build",
+    "buildDirectory": "/Users/shirishpothi/Desktop/School/JA/create-anything/apps/web/build",
     "future": {
       "unstable_optimizeDeps": false,
       "unstable_subResourceIntegrity": false,

@@ -151,7 +151,7 @@ export default function AboutPage() {
 
                         <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-6 md:mb-8 font-proxima-sera leading-tight">
                             Reimagining the<br />
-                            <span className="bg-gradient-to-r from-[#4ADE80] via-[#36484d] to-[#764134] bg-clip-text text-transparent leading-relaxed py-2 block">
+                            <span className="bg-gradient-to-r from-[#4ADE80] via-[#6EE7B7] to-[#A7F3D0] bg-clip-text text-transparent leading-relaxed py-2 block">
                                 Student Experience
                             </span>
                         </motion.h1>
@@ -298,7 +298,7 @@ export default function AboutPage() {
                         Sustainable. Modular. Yours.
                     </p>
                     <p className="text-xs text-[#666666] font-montserrat">
-                        A Junior Achievement Singapore Company: PagePalette • © 2026
+                        A Junior Achievement Singapore Company: PagePalette • © 2025
                     </p>
                 </div>
             </footer>

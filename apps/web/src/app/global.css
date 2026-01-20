@@ -1,5 +1,8 @@
-/* Typography imports — purposeful, non-default pairing */
-/* Use font-display=swap for faster initial render + preconnect to Google Fonts */
+/* Typography imports — optimized for performance
+   - Limited weights to only what's used (600, 700)
+   - Using display=swap for faster initial render
+   - Fonts are preconnected in root.tsx
+*/
 @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;

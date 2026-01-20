@@ -615,6 +615,20 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
+
+          {/* Browse All PagePals Link */}
+          <motion.p 
+            variants={itemVariants}
+            className="mt-6 text-sm text-[#666] font-montserrat"
+          >
+            Want to see all designs first?{' '}
+            <a 
+              href="/order?browse=true" 
+              className="text-[#4ADE80] hover:text-[#22C55E] underline underline-offset-4 decoration-[#4ADE80]/30 hover:decoration-[#4ADE80] transition-colors"
+            >
+              Browse our PagePal collection
+            </a>
+          </motion.p>
           
           {/* Minimal trust indicator */}
           <motion.div 
@@ -672,15 +686,23 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="relative py-12 md:py-16 px-6 border-t border-[#1f1f1f] z-10 bg-[#1a2a2e]">
         <div className="max-w-6xl mx-auto text-center">
-          {/* TextHoverEffect for PagePalette */}
-          <div className="h-16 sm:h-20 md:h-28 lg:h-32 flex items-center justify-center mb-4">
-            <TextHoverEffect text="PagePalette" />
-          </div>
-          <p className="text-sm text-[#888888] font-montserrat mb-2">
+          {/* Logo with hover effect */}
+          <a href="/" className="inline-block mb-4 group">
+            <div className="relative">
+              <img 
+                src="/logo-full.png" 
+                alt="PagePalette" 
+                className="h-12 sm:h-16 md:h-20 w-auto mx-auto object-contain brightness-0 invert transition-all duration-300 group-hover:scale-105"
+              />
+              {/* Glow effect on hover */}
+              <div className="absolute inset-0 bg-[#4ADE80]/0 group-hover:bg-[#4ADE80]/10 rounded-lg blur-xl transition-all duration-300 -z-10" />
+            </div>
+          </a>
+          <p className="text-sm text-[#888888] font-montserrat mb-2 italic">
             Sustainable. Modular. Yours.
           </p>
           <p className="text-xs text-[#666666] font-montserrat">
-            A Junior Achievement Singapore Company: PagePalette • © 2026
+            A Junior Achievement Singapore Company: PagePalette • © 2025
           </p>
         </div>
       </footer>

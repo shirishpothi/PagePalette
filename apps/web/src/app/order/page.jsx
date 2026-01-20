@@ -13,6 +13,10 @@ import { postJSON } from "../../utils/api-utils";
 // Lazy load Stripe components to avoid SSR issues
 const StripeCheckout = lazy(() => import("./StripeCheckout"));
 
+// Feature flag for payments - set to false to disable payments
+// Disabled as PagePalette JA Company liquidated on December 31, 2025
+const PAYMENTS_ENABLED = false;
+
 // --- Constants & Data ---
 // Note: Removed STL file URLs for faster loading. Using emoji representations.
 const STL_OPTIONS = [
@@ -156,7 +160,9 @@ export default function OrderPage() {
         room: "",
         // Other (non-school) Specific
         phone: "",
-        address: "",
+        addressLine1: "",
+        addressLine2: "",
+        postalCode: "",
     });
 
     // Browse mode state (view-only, no purchase)
@@ -289,7 +295,8 @@ export default function OrderPage() {
         }
         if (role === 'other') {
             if (!formData.phone.trim()) errors.phone = "Phone number is required";
-            if (!formData.address.trim()) errors.address = "Delivery address is required";
+            if (!formData.addressLine1.trim()) errors.addressLine1 = "Address is required";
+            if (!formData.postalCode.trim()) errors.postalCode = "Postal code is required";
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -376,7 +383,7 @@ export default function OrderPage() {
             "Position": formData.position || "N/A",
             "Room": role === 'teacher' ? (formData.room || "N/A") : "N/A",
             "Phone": role === 'other' ? (formData.phone || "N/A") : "N/A",
-            "Address": role === 'other' ? (formData.address || "N/A") : "N/A",
+            "Address": role === 'other' ? `${formData.addressLine1}${formData.addressLine2 ? ', ' + formData.addressLine2 : ''}, Singapore ${formData.postalCode}` : "N/A",
             "Items": allItems.join(", "),
             "Total Amount": currentTotal.toFixed(2),
             "Payment Method": paymentMethod || "N/A",
@@ -817,7 +824,7 @@ export default function OrderPage() {
                         { id: 'student', icon: GraduationCap, label: 'Student' },
                         { id: 'parent', icon: User, label: 'Parent' },
                         { id: 'teacher', icon: Briefcase, label: 'Teacher' },
-                        { id: 'other', icon: Home, label: 'Other' }
+                        { id: 'other', icon: Home, label: 'Personal' }
                     ].map(r => (
                         <button
                             key={r.id}
@@ -964,7 +971,7 @@ export default function OrderPage() {
                         </div>
                     )}
 
-                    {/* Other (Non-School) Specific */}
+                    {/* Personal (Non-School) Specific */}
                     {role === 'other' && (
                         <div className="space-y-4 pt-4 border-t border-[#252525]">
                             <div className="bg-[#4ADE80]/5 border border-[#4ADE80]/20 rounded-xl p-4">
@@ -977,24 +984,48 @@ export default function OrderPage() {
                                 </div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
+                                <div className="space-y-1 md:col-span-2">
                                     <label className="text-xs font-bold text-[#666] uppercase">Phone Number <span className="text-red-400">*</span></label>
                                     <input
                                         value={formData.phone}
                                         onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                        onBlur={() => handleFieldBlur('phone')}
+                                        className={`w-full bg-[#151515] border rounded-xl px-4 py-3 text-sm outline-none text-white ${getFieldError('phone') ? 'border-red-400 focus:border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
                                         placeholder="+65 XXXX XXXX"
                                         type="tel"
                                     />
+                                    {getFieldError('phone') && <p className="text-xs text-red-400">{getFieldError('phone')}</p>}
                                 </div>
                                 <div className="space-y-1 md:col-span-2">
-                                    <label className="text-xs font-bold text-[#666] uppercase">Delivery Address <span className="text-red-400">*</span></label>
-                                    <textarea
-                                        value={formData.address}
-                                        onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white min-h-[80px] resize-none"
-                                        placeholder="Enter your full delivery address"
+                                    <label className="text-xs font-bold text-[#666] uppercase">Address Line 1 <span className="text-red-400">*</span></label>
+                                    <input
+                                        value={formData.addressLine1}
+                                        onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
+                                        onBlur={() => handleFieldBlur('addressLine1')}
+                                        className={`w-full bg-[#151515] border rounded-xl px-4 py-3 text-sm outline-none text-white ${getFieldError('addressLine1') ? 'border-red-400 focus:border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
+                                        placeholder="Street address, block, unit number"
                                     />
+                                    {getFieldError('addressLine1') && <p className="text-xs text-red-400">{getFieldError('addressLine1')}</p>}
+                                </div>
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-xs font-bold text-[#666] uppercase">Address Line 2</label>
+                                    <input
+                                        value={formData.addressLine2}
+                                        onChange={e => setFormData({ ...formData, addressLine2: e.target.value })}
+                                        className="w-full bg-[#151515] border border-[#252525] rounded-xl px-4 py-3 text-sm focus:border-[#4ADE80] outline-none text-white"
+                                        placeholder="Building name, floor, etc. (optional)"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-[#666] uppercase">Postal Code <span className="text-red-400">*</span></label>
+                                    <input
+                                        value={formData.postalCode}
+                                        onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
+                                        onBlur={() => handleFieldBlur('postalCode')}
+                                        className={`w-full bg-[#151515] border rounded-xl px-4 py-3 text-sm outline-none text-white ${getFieldError('postalCode') ? 'border-red-400 focus:border-red-400' : 'border-[#252525] focus:border-[#4ADE80]'}`}
+                                        placeholder="e.g. 123456"
+                                    />
+                                    {getFieldError('postalCode') && <p className="text-xs text-red-400">{getFieldError('postalCode')}</p>}
                                 </div>
                             </div>
                         </div>
@@ -1014,7 +1045,7 @@ export default function OrderPage() {
                             if (validateForm()) {
                                 setStep(4);
                             } else {
-                                setFormTouched({ name: true, email: true, studentName: true, studentEmail: true });
+                                setFormTouched({ name: true, email: true, studentName: true, studentEmail: true, phone: true, addressLine1: true, postalCode: true });
                             }
                         }}
                         aria-label="Proceed to payment"
@@ -1027,7 +1058,37 @@ export default function OrderPage() {
         </div>
     );
 
-    const renderStep4_Payment = () => (
+    const renderStep4_Payment = () => {
+        if (!PAYMENTS_ENABLED) {
+            return (
+                <div className="max-w-2xl mx-auto animate-fade-in-up text-center">
+                    <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-8 md:p-12">
+                        <div className="w-16 h-16 bg-[#36484d]/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Heart size={32} className="text-[#4ADE80]" />
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-4">Thank You for Your Interest!</h2>
+                        <p className="text-[#888888] font-montserrat mb-6 leading-relaxed">
+                            PagePalette was proudly operated as a <span className="text-white font-semibold">Junior Achievement Singapore</span> company. 
+                            Our company officially concluded operations on <span className="text-[#4ADE80] font-semibold">December 31, 2025</span>.
+                        </p>
+                        <p className="text-[#666] font-montserrat text-sm mb-8">
+                            While we're no longer accepting orders, you can still explore our order flow and see what we built!
+                        </p>
+                        <HoverBorderGradient
+                            containerClassName="inline-block rounded-xl"
+                            className="px-8 py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                            duration={0.8}
+                            intensity="strong"
+                            onClick={() => setStep(45)}
+                        >
+                            Continue Demo <ArrowRight size={16} className="inline ml-2" />
+                        </HoverBorderGradient>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
         <div className="max-w-4xl mx-auto animate-fade-in-up">
             <div className="grid md:grid-cols-[1fr_320px] gap-4 md:gap-8">
                 {/* Left: Methods */}
@@ -1223,24 +1284,153 @@ export default function OrderPage() {
                 </div>
             </div>
         </div>
-    );
+        );
+    };
 
-    const renderStep5_Receipt = () => (
+    // Processing step with notebook page-turn transition
+    const renderStep45_Processing = () => {
+        // Auto-advance to receipt after animation completes
+        useEffect(() => {
+            const timer = setTimeout(() => setStep(5), 2500);
+            return () => clearTimeout(timer);
+        }, []);
+
+        return (
+            <div className="max-w-md mx-auto text-center py-16">
+                {/* Notebook page-turn animation container */}
+                <div className="relative w-64 h-80 mx-auto mb-8 perspective-1000">
+                    {/* Book spine */}
+                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-[#36484d] to-[#2a3a40] rounded-l-lg shadow-lg z-10" />
+                    
+                    {/* Back page (static) */}
+                    <div className="absolute inset-0 ml-4 bg-[#fff9ea] rounded-r-lg shadow-xl">
+                        <div className="p-6 h-full flex flex-col items-center justify-center">
+                            <div className="w-12 h-12 bg-[#4ADE80] rounded-full flex items-center justify-center mb-4">
+                                <Check size={24} className="text-black" />
+                            </div>
+                            <p className="text-[#2c3e50] font-bold text-lg">Ready!</p>
+                        </div>
+                    </div>
+                    
+                    {/* Front page (animating) */}
+                    <div 
+                        className="absolute inset-0 ml-4 bg-[#fff9ea] rounded-r-lg shadow-2xl origin-left"
+                        style={{
+                            animation: 'pageTurn 1.8s ease-in-out forwards',
+                            animationDelay: '0.5s',
+                            transformStyle: 'preserve-3d',
+                            backfaceVisibility: 'hidden'
+                        }}
+                    >
+                        {/* Lined paper effect */}
+                        <div 
+                            className="absolute inset-0 p-6"
+                            style={{
+                                backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #94a3b8 27px, #94a3b8 28px)',
+                                backgroundPosition: '0 20px'
+                            }}
+                        >
+                            {/* Red margin */}
+                            <div className="absolute left-6 top-0 bottom-0 w-px bg-[#ef4444]/50" />
+                            
+                            {/* PagePalette branding */}
+                            <div className="text-center pt-8">
+                                <h3 className="text-[#2c3e50] font-bold text-xl mb-2" style={{ fontFamily: 'serif' }}>PagePalette</h3>
+                                <Leaf className="text-[#4ADE80] w-8 h-8 mx-auto mb-4" />
+                            </div>
+                            
+                            <div className="space-y-4 mt-8">
+                                <div className="h-3 bg-[#e2e8f0] rounded w-3/4 mx-auto" />
+                                <div className="h-3 bg-[#e2e8f0] rounded w-1/2 mx-auto" />
+                                <div className="h-3 bg-[#e2e8f0] rounded w-2/3 mx-auto" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Loading text */}
+                <div className="space-y-3">
+                    <p className="text-white font-proxima-sera text-xl font-bold">Preparing your receipt...</p>
+                    <div className="flex items-center justify-center gap-1">
+                        {[0, 1, 2].map(i => (
+                            <div 
+                                key={i}
+                                className="w-2 h-2 bg-[#4ADE80] rounded-full"
+                                style={{
+                                    animation: 'bounce 1s infinite',
+                                    animationDelay: `${i * 0.15}s`
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* CSS Animations */}
+                <style>{`
+                    .perspective-1000 {
+                        perspective: 1000px;
+                    }
+                    @keyframes pageTurn {
+                        0% {
+                            transform: rotateY(0deg);
+                            box-shadow: 5px 5px 20px rgba(0,0,0,0.3);
+                        }
+                        50% {
+                            box-shadow: 20px 10px 30px rgba(0,0,0,0.2);
+                        }
+                        100% {
+                            transform: rotateY(-160deg);
+                            box-shadow: -5px 5px 20px rgba(0,0,0,0.1);
+                        }
+                    }
+                    @keyframes bounce {
+                        0%, 80%, 100% {
+                            transform: translateY(0);
+                        }
+                        40% {
+                            transform: translateY(-8px);
+                        }
+                    }
+                `}</style>
+            </div>
+        );
+    };
+
+    const renderStep5_Receipt = () => {
+        const isDemo = !PAYMENTS_ENABLED;
+
+        return (
         <div className="max-w-3xl mx-auto animate-fade-in-up text-center">
             <div className="w-16 h-16 md:w-20 md:h-20 bg-[#4ADE80] rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl shadow-[#4ADE80]/30">
                 <Check size={32} className="text-[#0a0a0a]" />
             </div>
 
-            <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">Order Placed!</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">
+                {isDemo ? "Thank You for Exploring PagePalette!" : "Order Placed!"}
+            </h2>
             <p className="text-sm md:text-base text-[#CCCCCC] mb-6 md:mb-12 max-w-lg mx-auto px-2">
-                Complete your payment and send a screenshot to finalize your order.
+                {isDemo 
+                    ? "This is a demo receipt. PagePalette concluded operations on December 31, 2025 as a JA Singapore company."
+                    : "Complete your payment and send a screenshot to finalize your order."}
             </p>
 
             <div className="grid md:grid-cols-2 gap-4 md:gap-8 text-left">
                 <div className="space-y-4 md:space-y-6">
-                    <h3 className="font-bold text-white border-b border-[#252525] pb-2 text-sm md:text-base">What's Next?</h3>
+                    <h3 className="font-bold text-white border-b border-[#252525] pb-2 text-sm md:text-base">
+                        {isDemo ? "About This Demo" : "What's Next?"}
+                    </h3>
 
-                    {paymentMethod === 'paynow' ? (
+                    {isDemo ? (
+                        <div className="bg-[#151515] p-4 md:p-6 rounded-2xl border border-[#252525]">
+                            <p className="text-white font-medium mb-2 text-sm md:text-base">PagePalette JA Company</p>
+                            <p className="text-xs md:text-sm text-[#888888] mb-3">
+                                We were a Junior Achievement Singapore student company that created sustainable notebooks with 3D-printed accessories.
+                            </p>
+                            <p className="text-[10px] md:text-xs text-[#666]">
+                                Thank you for checking out what we built! 💚
+                            </p>
+                        </div>
+                    ) : paymentMethod === 'paynow' ? (
                         <div className="bg-[#151515] p-4 md:p-6 rounded-2xl border border-[#252525]">
                             <div className="text-xs md:text-sm text-[#888888] mb-1">Send proof of payment to:</div>
                             <div className="font-mono text-[#4ADE80] text-xs md:text-sm break-all mb-3 md:mb-4">shirish.pothi.27@nexus.edu.sg</div>
@@ -1316,7 +1506,7 @@ export default function OrderPage() {
 
                                 <div className="text-center mb-4 md:mb-6 pt-2">
                                     <h2 className="text-2xl md:text-3xl font-bold text-[#1e293b]" style={{ fontFamily: 'serif' }}>PagePalette</h2>
-                                    <div className="text-[10px] md:text-xs text-[#64748b]">Est. 2026 • Nexus School</div>
+                                    <div className="text-[10px] md:text-xs text-[#64748b]">Est. 2025 • Nexus School</div>
                                 </div>
 
                                 <div className="space-y-3 md:space-y-4 text-xs md:text-sm font-medium relative z-10" style={{ lineHeight: '28px' }}>
@@ -1367,7 +1557,8 @@ export default function OrderPage() {
                 </div>
             </div>
         </div>
-    );
+        );
+    };
 
     return (
         <div className="min-h-screen bg-[#2d3f44] text-white font-sans overflow-x-hidden selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
@@ -1417,6 +1608,7 @@ export default function OrderPage() {
                 {step === 2 && renderStep2_Selection()}
                 {step === 3 && renderStep3_Info()}
                 {step === 4 && renderStep4_Payment()}
+                {step === 45 && renderStep45_Processing()}
                 {step === 5 && renderStep5_Receipt()}
                 {step === 15 && renderStep15_Verification()}
             </div>
