@@ -20,6 +20,7 @@ import {
   Component,
 } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 import './global.css';
 
 import { toPng } from 'html-to-image';
@@ -470,7 +471,8 @@ export function Layout({ children }: { children: ReactNode }) {
         {isDev ? (
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         ) : null}
-        <link rel="icon" href="/logo.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+        <link rel="apple-touch-icon" sizes="64x64" href="/favicon.png" />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
@@ -478,6 +480,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <SpeedInsights />
+        <Analytics />
         <ScrollRestoration />
         <Scripts />
         {/* Load FontAwesome asynchronously with defer to not block rendering */}
