@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft, Check, Sparkles, CreditCard, Banknote, ShieldCheck, Mail,
     User, Briefcase, GraduationCap, School, ChevronRight, Package, ArrowRight,
     Download, Home, BookOpen, Leaf, Heart, Loader2
 } from "lucide-react";
-import { motion } from "motion/react";
 import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
@@ -61,59 +60,33 @@ const CLASSES = Array.from({ length: 11 }, (_, i) => i.toString()); // 0-10
 
 // --- Helper Component for Browse PagePals Card with Animated Border ---
 function BrowsePagePalsCard({ onClick }) {
-    const gradientColor = "#4ADE80";
-    const hexToRgba = (hex, alpha = 0) => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    };
-
-    const gradientSize = { w: "30%", h: "60%" };
-
-    const movingMap = useMemo(() => ({
-        TOP: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 0%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
-        LEFT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 0% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
-        BOTTOM: `radial-gradient(${gradientSize.w} ${gradientSize.h} at 50% 100%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
-        RIGHT: `radial-gradient(${gradientSize.h} ${gradientSize.w} at 100% 50%, ${gradientColor} 0%, ${hexToRgba(gradientColor, 0)} 100%)`,
-    }), []);
-
     return (
         <div className="mt-8 md:mt-12 max-w-4xl mx-auto">
             <div
                 onClick={onClick}
-                className="relative p-px rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden"
+                className="relative p-5 md:p-8 rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden bg-[#0f1115]/80 backdrop-blur-sm border border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"
             >
-                {/* Animated trace border */}
-                <motion.div
-                    className="absolute inset-0 rounded-2xl"
-                    style={{
-                        filter: "blur(2px)",
-                        zIndex: 0,
-                    }}
-                    initial={{ background: movingMap["TOP"] }}
-                    animate={{
-                        background: [movingMap["TOP"], movingMap["LEFT"], movingMap["BOTTOM"], movingMap["RIGHT"], movingMap["TOP"]],
-                    }}
-                    transition={{ ease: "linear", duration: 4, repeat: Infinity }}
-                />
-                {/* Background layer to hide inner border */}
-                <div className="absolute inset-[2px] bg-[#0f1115] rounded-2xl z-1" />
-
                 {/* Content */}
-                <div className="relative z-10 p-5 md:p-8 rounded-2xl flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex-1">
-                            <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
-                            <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
-                        </div>
-                        <div className="text-3xl md:text-5xl ml-4">👀</div>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex-1">
+                        <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
+                        <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
                     </div>
-
-                    <div className="pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
-                        View all {STL_OPTIONS.length} PagePal designs
-                    </div>
+                    <div className="text-3xl md:text-5xl ml-4">👀</div>
                 </div>
+
+                <div className="pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
+                    View all {STL_OPTIONS.length} PagePal designs
+                </div>
+
+                <HoverBorderGradient
+                    containerClassName="w-full rounded-xl mt-4"
+                    className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                    duration={1}
+                    intensity="normal"
+                >
+                    Browse Collection
+                </HoverBorderGradient>
             </div>
         </div>
     );
@@ -571,8 +544,8 @@ export default function OrderPage() {
                         <HoverBorderGradient
                             containerClassName="w-full rounded-xl mt-auto"
                             className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
-                            duration={bundle.id === 'complete' ? 0.6 : 1}
-                            intensity={bundle.id === 'complete' ? "strong" : "normal"}
+                            duration={1}
+                            intensity="normal"
                         >
                             Select {bundle.name}
                         </HoverBorderGradient>
@@ -1138,15 +1111,30 @@ export default function OrderPage() {
                         <p className="text-[#888888] font-montserrat mb-6 leading-relaxed">
                             You can see your complete order summary below. Continue to view your digital receipt!
                         </p>
+                        {submitError && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center mb-4">
+                                {submitError}
+                            </div>
+                        )}
                         <HoverBorderGradient
                             containerClassName="w-full rounded-xl"
                             className="w-full px-8 py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white flex items-center justify-center gap-2"
-                            duration={0.8}
-                            intensity="strong"
-                            onClick={() => setStep(45)}
+                            duration={1}
+                            intensity="normal"
+                            onClick={handleSubmitOrder}
+                            disabled={isSubmitting}
                         >
-                            <span>View Receipt</span>
-                            <ArrowRight size={16} />
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={16} className="animate-spin" />
+                                    <span>Processing...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>View Receipt</span>
+                                    <ArrowRight size={16} />
+                                </>
+                            )}
                         </HoverBorderGradient>
                     </div>
                 </div>
@@ -1473,19 +1461,13 @@ export default function OrderPage() {
             </div>
 
             <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">
-                {isDemo ? "Your Order Summary" : "Order Placed!"}
+                Order Complete!
             </h2>
             <p className="text-sm md:text-base text-[#CCCCCC] mb-6 md:mb-12 max-w-lg mx-auto px-2">
                 {isDemo 
-                    ? "Your digital receipt is below."
+                    ? "Your digital receipt is below. Check your email for confirmation!"
                     : "Complete your payment and send a screenshot to finalize your order."}
             </p>
-
-            {isDemo && (
-                <div className="mb-6 md:mb-12 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                    <p className="text-red-400 text-sm font-medium">⚠️ Demo Mode: This is not an actual order. PagePalette concluded operations on December 31, 2025.</p>
-                </div>
-            )}
 
             <div className="grid md:grid-cols-2 gap-4 md:gap-8 text-left">
                 <div className="space-y-4 md:space-y-6">

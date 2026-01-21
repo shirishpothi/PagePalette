@@ -19,6 +19,7 @@ import {
   type FC,
   Component,
 } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import './global.css';
 
 import { toPng } from 'html-to-image';
@@ -476,6 +477,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <ClientOnly loader={() => children} />
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
+        <SpeedInsights />
         <ScrollRestoration />
         <Scripts />
         {/* Load FontAwesome asynchronously with defer to not block rendering */}
