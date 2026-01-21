@@ -471,8 +471,8 @@ export function Layout({ children }: { children: ReactNode }) {
         {isDev ? (
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         ) : null}
-        <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
-        <link rel="apple-touch-icon" sizes="64x64" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/possible.png" />
+        <link rel="apple-touch-icon" sizes="64x64" href="/possible.png" />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
