@@ -432,6 +432,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location?.pathname;
+  const siteName = 'PagePalette';
+  const siteTitle = 'PagePalette | Customizable Student Notebook';
+  const siteDescription =
+    'PagePalette is a customizable, modular notebook for students with changeable covers, PagePals, and eco-friendly organization.';
+  const siteImage = '/marketing-image.png';
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'sandbox:navigation') {
@@ -462,6 +467,18 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content={siteDescription} />
+        <meta name="theme-color" content="#2d3f44" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={siteName} />
+        <meta property="og:title" content={siteTitle} />
+        <meta property="og:description" content={siteDescription} />
+        <meta property="og:image" content={siteImage} />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content={siteTitle} />
+        <meta property="twitter:description" content={siteDescription} />
+        <meta property="twitter:image" content={siteImage} />
+        <title>{siteTitle}</title>
         {/* Preconnect to critical third-party origins for faster resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -471,8 +488,10 @@ export function Layout({ children }: { children: ReactNode }) {
         {isDev ? (
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         ) : null}
-        <link rel="icon" type="image/png" sizes="64x64" href="/possible.png" />
-        <link rel="apple-touch-icon" sizes="64x64" href="/possible.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
