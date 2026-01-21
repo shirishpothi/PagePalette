@@ -616,20 +616,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Browse All PagePals Link */}
-          <motion.p 
-            variants={itemVariants}
-            className="mt-6 text-sm text-[#666] font-montserrat"
-          >
-            Want to see all designs first?{' '}
-            <a 
-              href="/order?browse=true" 
-              className="text-[#4ADE80] hover:text-[#22C55E] underline underline-offset-4 decoration-[#4ADE80]/30 hover:decoration-[#4ADE80] transition-colors"
-            >
-              Browse our PagePal collection
-            </a>
-          </motion.p>
-          
+
           {/* Minimal trust indicator */}
           <motion.div 
             variants={itemVariants}

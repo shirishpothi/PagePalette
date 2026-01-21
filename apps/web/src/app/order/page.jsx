@@ -61,27 +61,23 @@ const CLASSES = Array.from({ length: 11 }, (_, i) => i.toString()); // 0-10
 // --- Helper Component for Browse PagePals Card with Animated Border ---
 function BrowsePagePalsCard({ onClick }) {
     return (
-        <div className="mt-8 md:mt-12 max-w-4xl mx-auto">
+        <div className="mt-4 md:mt-6 max-w-4xl mx-auto">
             <div
                 onClick={onClick}
-                className="relative p-5 md:p-8 rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden bg-[#0f1115]/80 backdrop-blur-sm border border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"
+                className="relative p-4 md:p-5 rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden bg-[#0f1115]/80 backdrop-blur-sm border border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"
             >
                 {/* Content */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                        <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera mb-2">Browse PagePals</h3>
-                        <p className="text-sm md:text-base text-[#888888] font-montserrat">Explore our full collection without committing to a bundle</p>
+                        <h3 className="text-lg md:text-xl font-bold text-white font-proxima-sera mb-1">Browse PagePals</h3>
+                        <p className="text-xs md:text-sm text-[#888888] font-montserrat">Explore our full collection • {STL_OPTIONS.length} designs</p>
                     </div>
-                    <div className="text-3xl md:text-5xl ml-4">👀</div>
-                </div>
-
-                <div className="pt-4 border-t border-[#36484d] text-xs md:text-sm text-[#666]">
-                    View all {STL_OPTIONS.length} PagePal designs
+                    <div className="text-2xl md:text-4xl ml-4">👀</div>
                 </div>
 
                 <HoverBorderGradient
-                    containerClassName="w-full rounded-xl mt-4"
-                    className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                    containerClassName="w-full rounded-xl"
+                    className="w-full py-2.5 text-center font-bold font-montserrat bg-[#1a1a1a] text-white text-sm"
                     duration={1}
                     intensity="normal"
                 >
@@ -358,9 +354,25 @@ export default function OrderPage() {
     // --- Handlers ---
 
     const handleBundleSelect = (bundle) => {
+        const previousBundle = selectedBundle;
         setSelectedBundle(bundle);
-        // Reset selections if switching bundles to avoid invalid states
-        setBundleSelections([]);
+        
+        // If we have existing selections (e.g., from browse mode), redistribute them
+        // based on the new bundle's free count instead of resetting
+        const existingSelections = [...bundleSelections, ...extraSelections];
+        
+        if (existingSelections.length > 0) {
+            // Redistribute: put items into bundle slots first, rest as extras
+            const newBundleSelections = existingSelections.slice(0, bundle.freeCount);
+            const newExtraSelections = existingSelections.slice(bundle.freeCount);
+            setBundleSelections(newBundleSelections);
+            setExtraSelections(newExtraSelections);
+        } else if (previousBundle.id !== bundle.id) {
+            // Only reset if switching between bundles with no existing selections
+            setBundleSelections([]);
+            setExtraSelections([]);
+        }
+        
         setStep(2);
     };
 
@@ -391,7 +403,7 @@ export default function OrderPage() {
         return "none";
     };
 
-    const handleSubmitOrder = async () => {
+    const handleSubmitOrder = async (skipNavigation = false) => {
         setIsSubmitting(true);
         setSubmitError(null);
         const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
@@ -440,18 +452,24 @@ export default function OrderPage() {
             if (!result.success) {
                 console.error("Order API Error:", result.error);
                 setSubmitError(result.error || "Failed to submit order. Please try again.");
-                // Still proceed to success to not block user after showing error
-                setTimeout(() => setStep(5), 2000);
+                // If skipNavigation, caller handles it; otherwise proceed with delay
+                if (!skipNavigation) {
+                    setTimeout(() => setStep(45), 2000);
+                }
                 return;
             }
 
-            // Move to success step
-            setStep(5);
+            // Move to animation step (then to receipt) unless caller handles navigation
+            if (!skipNavigation) {
+                setStep(45);
+            }
         } catch (err) {
             console.error("Order Submission Failed", err);
             setSubmitError("Failed to submit order. Please check your connection and try again.");
-            // Still proceed to success to not block user after showing error
-            setTimeout(() => setStep(5), 2000);
+            // If skipNavigation, caller handles it; otherwise proceed with delay
+            if (!skipNavigation) {
+                setTimeout(() => setStep(45), 2000);
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -474,13 +492,13 @@ export default function OrderPage() {
     // --- Render Steps ---
 
     const renderStep1_Bundles = () => (
-        <div className="space-y-4 md:space-y-6 animate-fade-in-up">
-            <div className="text-center mb-4 md:mb-8">
+        <div className="space-y-4 md:space-y-4 animate-fade-in-up">
+            <div className="text-center mb-4 md:mb-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-white font-proxima-sera mb-1 md:mb-2">Choose Your Bundle</h2>
-                <p className="text-sm md:text-base text-[#888888] font-montserrat mb-3 md:mb-4">Select standard or customization package</p>
+                <p className="text-sm md:text-base text-[#888888] font-montserrat mb-2 md:mb-3">Select standard or customization package</p>
 
                 {/* Social Proof - Hidden on very small screens for space */}
-                <div className="hidden sm:flex items-center justify-center gap-2 mb-4 md:mb-6">
+                <div className="hidden sm:flex items-center justify-center gap-2 mb-3 md:mb-4">
                     <div className="flex -space-x-2">
                         {[1, 2, 3, 4, 5].map((_, i) => (
                             <div key={i} className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gradient-to-br from-[#4ADE80] to-[#36484d] border-2 border-[#0a0a0a] flex items-center justify-center text-xs">🎒</div>
@@ -488,16 +506,16 @@ export default function OrderPage() {
                     </div>
                 </div>
 
-                <img src="/logo-full.png" alt="PagePalette" className="h-12 md:h-16 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
+                <img src="/logo-full.png" alt="PagePalette" className="h-10 md:h-12 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4 max-w-4xl mx-auto">
                 {BUNDLES.map(bundle => (
                     <div
                         key={bundle.id}
                         onClick={() => handleBundleSelect(bundle)}
                         className={`
-              relative p-5 md:p-8 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
+              relative p-4 md:p-6 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
               ${bundle.id === 'complete'
                                 ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
                                 : selectedBundle.id === bundle.id
@@ -521,12 +539,12 @@ export default function OrderPage() {
                             </div>
                         )}
                         {/* Add top padding for complete bundle to make room for badge */}
-                        <div className={`flex items-center justify-between mb-2 ${bundle.id === 'complete' ? 'mt-4 md:mt-2' : ''}`}>
+                        <div className={`flex items-center justify-between mb-2 ${bundle.id === 'complete' ? 'mt-3 md:mt-2' : ''}`}>
                             <h3 className="text-xl md:text-2xl font-bold text-white font-proxima-sera">{bundle.name}</h3>
-                            <span className="text-2xl md:text-4xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
+                            <span className="text-2xl md:text-3xl font-bold text-[#4ADE80] font-proxima-sera">${bundle.price}</span>
                         </div>
 
-                        <ul className="space-y-2 md:space-y-3 mb-4 md:mb-8 flex-1">
+                        <ul className="space-y-1.5 md:space-y-2 mb-3 md:mb-4 flex-1">
                             {bundle.includes.map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 md:gap-3 text-xs md:text-sm text-[#CCCCCC] font-montserrat">
                                     <Check size={14} className="mt-0.5 text-[#4ADE80] flex-shrink-0" />
@@ -543,7 +561,7 @@ export default function OrderPage() {
 
                         <HoverBorderGradient
                             containerClassName="w-full rounded-xl mt-auto"
-                            className="w-full py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white"
+                            className="w-full py-2.5 text-center font-bold font-montserrat bg-[#1a1a1a] text-white text-sm"
                             duration={1}
                             intensity="normal"
                         >
@@ -553,14 +571,14 @@ export default function OrderPage() {
                 ))}
             </div>
 
-            {/* Browse PagePals Option with Animated Border */}
+            {/* Browse PagePals Option with Animated Border - More compact on desktop */}
             <BrowsePagePalsCard onClick={() => {
                 setBrowseMode(true);
                 setStep(2);
             }} />
 
             {/* Minimal eco-friendly indicator */}
-            <div className="mt-4 md:mt-8 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
+            <div className="mt-3 md:mt-4 flex items-center justify-center gap-2 text-xs md:text-sm text-[#666] font-montserrat">
                 <Leaf size={14} className="text-[#4ADE80]" />
                 <span>Eco-Friendly Materials</span>
             </div>
@@ -787,8 +805,20 @@ export default function OrderPage() {
                     <Card className="p-6 bg-[#0f1115] border-[#1f1f1f] sticky top-24">
                         <h3 className="font-bold text-white mb-4">PagePal Collection</h3>
                         <p className="text-sm text-[#888888] mb-4">
-                            Browse our full collection of {STL_OPTIONS.length} unique PagePal designs. Each one adds personality to your notebook!
+                            {bundleSelections.length + extraSelections.length > 0 
+                                ? `${bundleSelections.length + extraSelections.length} PagePal${bundleSelections.length + extraSelections.length > 1 ? 's' : ''} selected. Click "Start Order" to continue with your selection!`
+                                : `Browse our full collection of ${STL_OPTIONS.length} unique PagePal designs. Tap to select your favorites!`}
                         </p>
+                        {bundleSelections.length + extraSelections.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {[...bundleSelections, ...extraSelections].map(item => (
+                                    <div key={item.id} className="flex items-center gap-1 bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg px-2 py-1 text-xs">
+                                        <span>{item.emoji}</span>
+                                        <span className="text-[#4ADE80]">{item.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <HoverBorderGradient
                                 containerClassName="w-full rounded-xl"
@@ -800,7 +830,7 @@ export default function OrderPage() {
                                     setStep(1);
                                 }}
                             >
-                                Start Order <ArrowRight size={16} />
+                                Start Order {bundleSelections.length + extraSelections.length > 0 && `(${bundleSelections.length + extraSelections.length} selected)`} <ArrowRight size={16} />
                             </HoverBorderGradient>
                             <Button className="w-full" variant="ghost" onClick={() => navigate("/")}>
                                 Back to Home
@@ -837,7 +867,11 @@ export default function OrderPage() {
                         <ArrowLeft size={16} /> Home
                     </Button>
                     <div className="text-center">
-                        <div className="text-xs text-[#888888]">{STL_OPTIONS.length} designs</div>
+                        <div className="text-xs text-[#888888]">
+                            {bundleSelections.length + extraSelections.length > 0 
+                                ? `${bundleSelections.length + extraSelections.length} selected`
+                                : `${STL_OPTIONS.length} designs`}
+                        </div>
                     </div>
                     <Button variant="primary" size="sm" onClick={() => { setBrowseMode(false); setStep(1); }} className="flex-shrink-0">
                         Order <ArrowRight size={16} />
@@ -1104,6 +1138,14 @@ export default function OrderPage() {
             return (
                 <div className="max-w-2xl mx-auto animate-fade-in-up text-center">
                     <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-8 md:p-12">
+                        {/* Demo Notice */}
+                        <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl p-4 mb-6">
+                            <p className="text-[#F59E0B] font-bold text-sm mb-1">📋 Demo Mode</p>
+                            <p className="text-xs text-[#F59E0B]/80">
+                                PagePalette concluded operations on December 31, 2025 as a JA Singapore company. This is a demo order flow.
+                            </p>
+                        </div>
+                        
                         <div className="w-16 h-16 bg-[#36484d]/30 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Heart size={32} className="text-[#4ADE80]" />
                         </div>
@@ -1121,7 +1163,7 @@ export default function OrderPage() {
                             className="w-full px-8 py-3 text-center font-bold font-montserrat bg-[#1a1a1a] text-white flex items-center justify-center gap-2"
                             duration={1}
                             intensity="normal"
-                            onClick={handleSubmitOrder}
+                            onClick={() => handleSubmitOrder()}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (
