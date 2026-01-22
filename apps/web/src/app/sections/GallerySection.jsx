@@ -22,24 +22,39 @@ export default function GallerySection() {
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0f1115] to-transparent z-10" />
 
         <div className="animate-marquee gap-6 px-6">
-          {[...GALLERY_IMAGES.slice(0, 6), ...GALLERY_IMAGES.slice(0, 6)].map((src, i) => (
+            {[...GALLERY_IMAGES.slice(0, 6), ...GALLERY_IMAGES.slice(0, 6)].map((src, i) => {
+              const base = src.replace(".jpg", "");
+              return (
             <div
               key={i}
               className="flex-shrink-0 w-72 h-48 md:w-96 md:h-64 rounded-xl overflow-hidden border border-[#252525] relative"
             >
-              <img
-                src={src}
-                alt={`JA Process ${(i % 6) + 1}`}
-                loading="lazy"
-                decoding="async"
-                fetchPriority={i < 3 ? "high" : "low"}
-                width="384"
-                height="256"
-                className="w-full h-full object-cover"
-                style={{ contentVisibility: 'auto' }}
-              />
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet={`${base}-384.webp 384w, ${base}-768.webp 768w`}
+                  sizes="(max-width: 768px) 288px, 384px"
+                />
+                <source
+                  type="image/jpeg"
+                  srcSet={`${base}-384.jpg 384w, ${base}-768.jpg 768w`}
+                  sizes="(max-width: 768px) 288px, 384px"
+                />
+                <img
+                  src={`${base}-384.jpg`}
+                  alt={`JA Process ${(i % 6) + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority={i < 3 ? "high" : "low"}
+                  width="384"
+                  height="256"
+                  className="w-full h-full object-cover"
+                  style={{ contentVisibility: "auto" }}
+                />
+              </picture>
             </div>
-          ))}
+              );
+            })}
         </div>
       </div>
     </section>

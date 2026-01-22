@@ -594,7 +594,27 @@ export default function OrderPage() {
                     </div>
                 </div>
 
-                <img src="/logo-full.png" alt="PagePalette" className="h-10 md:h-12 w-auto mx-auto object-contain brightness-0 invert opacity-80" loading="lazy" />
+                <picture>
+                    <source
+                        type="image/webp"
+                        srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
+                        sizes="(max-width: 768px) 160px, 192px"
+                    />
+                    <source
+                        type="image/jpeg"
+                        srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
+                        sizes="(max-width: 768px) 160px, 192px"
+                    />
+                    <img
+                        src="/logo-full-256.jpg"
+                        alt="PagePalette"
+                        className="h-10 md:h-12 w-auto mx-auto object-contain brightness-0 invert opacity-80"
+                        loading="lazy"
+                        decoding="async"
+                        width="192"
+                        height="48"
+                    />
+                </picture>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4 max-w-4xl mx-auto">
@@ -1326,7 +1346,27 @@ export default function OrderPage() {
                                 <div className="mt-4 space-y-4 animate-fade-in">
                                     <div className="flex flex-col sm:flex-row gap-4">
                                         <div className="w-32 h-32 md:w-40 md:h-40 bg-white p-2 rounded-xl mx-auto sm:mx-0 flex-shrink-0">
-                                            <img src="/paynow-qr.jpg" alt="QR" className="w-full h-full object-contain" />
+                                            <picture>
+                                                <source
+                                                    type="image/webp"
+                                                    srcSet="/paynow-qr-256.webp 256w, /paynow-qr-320.webp 320w"
+                                                    sizes="(max-width: 768px) 128px, 160px"
+                                                />
+                                                <source
+                                                    type="image/jpeg"
+                                                    srcSet="/paynow-qr-256.jpg 256w, /paynow-qr-320.jpg 320w"
+                                                    sizes="(max-width: 768px) 128px, 160px"
+                                                />
+                                                <img
+                                                    src="/paynow-qr-256.jpg"
+                                                    alt="QR"
+                                                    className="w-full h-full object-contain"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width="160"
+                                                    height="160"
+                                                />
+                                            </picture>
                                         </div>
                                         <div className="space-y-1.5 text-sm flex-1 text-center sm:text-left">
                                             <p className="text-[#888888]">Pay to Mobile:</p>

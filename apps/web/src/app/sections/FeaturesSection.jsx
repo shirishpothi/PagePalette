@@ -59,12 +59,27 @@ export default function FeaturesSection() {
               className="bg-[#0f1115] rounded-2xl border border-[#1f1f1f] overflow-hidden hover:border-[#36484d]/50 transition-all duration-300 group hover:-translate-y-2"
             >
               <div className="w-full h-40 overflow-hidden">
-                <img 
-                  src={feature.image} 
-                  alt={feature.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  loading="lazy"
-                />
+                <picture>
+                  <source
+                    type="image/webp"
+                    srcSet={`${feature.image.replace(".jpg", "")}-384.webp 384w, ${feature.image.replace(".jpg", "")}-768.webp 768w`}
+                    sizes="(max-width: 768px) 320px, 384px"
+                  />
+                  <source
+                    type="image/jpeg"
+                    srcSet={`${feature.image.replace(".jpg", "")}-384.jpg 384w, ${feature.image.replace(".jpg", "")}-768.jpg 768w`}
+                    sizes="(max-width: 768px) 320px, 384px"
+                  />
+                  <img
+                    src={feature.image.replace(".jpg", "") + "-384.jpg"}
+                    alt={feature.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                    width="384"
+                    height="160"
+                    decoding="async"
+                  />
+                </picture>
               </div>
               <div className="p-6">
                 <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4 -mt-12 relative z-10 shadow-lg shadow-[${feature.shadow}]/20 border-4 border-[#0f1115]`}>

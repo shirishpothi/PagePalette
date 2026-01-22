@@ -105,7 +105,26 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-3 group">
-              <img src="/logo-full.png" alt="PagePalette" width="160" height="40" fetchPriority="high" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
+              <picture>
+                <source
+                  type="image/webp"
+                  srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
+                  sizes="160px"
+                />
+                <source
+                  type="image/jpeg"
+                  srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
+                  sizes="160px"
+                />
+                <img
+                  src="/logo-full-256.jpg"
+                  alt="PagePalette"
+                  width="160"
+                  height="40"
+                  fetchPriority="high"
+                  className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
+                />
+              </picture>
             </a>
           </div>
 
@@ -255,16 +274,28 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row items-center gap-12 z-10">
               <div className="flex-1 flex justify-center order-2 md:order-1">
                 <div className="relative">
-                  <img
-                    src="/marketing-image.png"
-                    alt="PagePalette Notebooks"
-                    className="w-80 md:w-96 h-auto rounded-xl shadow-2xl hover:scale-105 transition-transform duration-300"
-                    fetchPriority="high"
-                    loading="eager"
-                    decoding="async"
-                    width="384"
-                    height="512"
-                  />
+                  <picture>
+                    <source
+                      type="image/webp"
+                      srcSet="/marketing-image-384.webp 384w, /marketing-image-768.webp 768w"
+                      sizes="(max-width: 768px) 320px, 384px"
+                    />
+                    <source
+                      type="image/jpeg"
+                      srcSet="/marketing-image-384.jpg 384w, /marketing-image-768.jpg 768w"
+                      sizes="(max-width: 768px) 320px, 384px"
+                    />
+                    <img
+                      src="/marketing-image-384.jpg"
+                      alt="PagePalette Notebooks"
+                      className="w-80 md:w-96 h-auto rounded-xl shadow-2xl hover:scale-105 transition-transform duration-300"
+                      fetchPriority="high"
+                      loading="eager"
+                      decoding="async"
+                      width="384"
+                      height="512"
+                    />
+                  </picture>
                 </div>
               </div>
 

@@ -98,7 +98,27 @@ export default function AboutPage() {
                 <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4 md:px-6">
                     <div className="flex items-center gap-3">
                         <a href="/" className="flex items-center gap-3">
-                            <img src="/logo-full.png" alt="PagePalette" className="h-8 md:h-10 w-auto object-contain brightness-0 invert" />
+                            <picture>
+                                <source
+                                    type="image/webp"
+                                    srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
+                                    sizes="160px"
+                                />
+                                <source
+                                    type="image/jpeg"
+                                    srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
+                                    sizes="160px"
+                                />
+                                <img
+                                    src="/logo-full-256.jpg"
+                                    alt="PagePalette"
+                                    className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
+                                    width="160"
+                                    height="40"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
+                            </picture>
                         </a>
                     </div>
 
@@ -201,16 +221,35 @@ export default function AboutPage() {
                         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0f1115] to-transparent z-10" />
 
                         <div className="animate-marquee gap-6 px-6">
-                            {[...GALLERY_IMAGES, ...GALLERY_IMAGES].map((src, i) => (
-                                <div key={i} className="flex-shrink-0 w-72 h-48 md:w-96 md:h-64 rounded-xl overflow-hidden border border-[#252525] group relative">
-                                    <img
-                                        src={src}
-                                        alt={`JA Process ${i}`}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                                </div>
-                            ))}
+                            {[...GALLERY_IMAGES, ...GALLERY_IMAGES].map((src, i) => {
+                                const base = src.replace(".jpg", "");
+                                return (
+                                    <div key={i} className="flex-shrink-0 w-72 h-48 md:w-96 md:h-64 rounded-xl overflow-hidden border border-[#252525] group relative">
+                                        <picture>
+                                            <source
+                                                type="image/webp"
+                                                srcSet={`${base}-384.webp 384w, ${base}-768.webp 768w`}
+                                                sizes="(max-width: 768px) 288px, 384px"
+                                            />
+                                            <source
+                                                type="image/jpeg"
+                                                srcSet={`${base}-384.jpg 384w, ${base}-768.jpg 768w`}
+                                                sizes="(max-width: 768px) 288px, 384px"
+                                            />
+                                            <img
+                                                src={`${base}-384.jpg`}
+                                                alt={`JA Process ${i}`}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="384"
+                                                height="256"
+                                            />
+                                        </picture>
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
@@ -291,7 +330,27 @@ export default function AboutPage() {
                 <div className="max-w-6xl mx-auto text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <a href="/" className="inline-block">
-                            <img src="/logo-full.png" alt="PagePalette" className="h-8 w-auto object-contain brightness-0 invert" />
+                            <picture>
+                                <source
+                                    type="image/webp"
+                                    srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
+                                    sizes="128px"
+                                />
+                                <source
+                                    type="image/jpeg"
+                                    srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
+                                    sizes="128px"
+                                />
+                                <img
+                                    src="/logo-full-256.jpg"
+                                    alt="PagePalette"
+                                    className="h-8 w-auto object-contain brightness-0 invert"
+                                    width="128"
+                                    height="32"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
+                            </picture>
                         </a>
                     </div>
                     <p className="text-sm text-[#888888] font-montserrat mb-2">
