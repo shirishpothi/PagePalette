@@ -2,6 +2,31 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+async function verifyTurnstile(token, ip) {
+  if (!process.env.TURNSTILE_SECRET_KEY) {
+    console.warn('TURNSTILE_SECRET_KEY not set, skipping verification');
+    return true;
+  }
+
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY,
+        response: token,
+        remoteip: ip || '',
+      }),
+    });
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('Turnstile verification error:', error);
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,7 +49,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { orderData, customerEmail, customerName, orderId, isDemo } = req.body;
+    const { orderData, customerEmail, customerName, orderId, isDemo, cfTurnstileToken } = req.body;
+
+    // Verify Turnstile token (bot protection)
+    const clientIP = req.headers['x-forwarded-for']?.split(',')[0] || req.headers['x-real-ip'] || '';
+    const isValidHuman = await verifyTurnstile(cfTurnstileToken, clientIP);
+    
+    if (!isValidHuman) {
+      return res.status(403).json({ error: 'Verification failed. Please try again.' });
+    }
 
     // 1. Save to SheetDB (only if not demo)
     if (!isDemo) {

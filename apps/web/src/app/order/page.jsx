@@ -9,6 +9,7 @@ import { Button, Badge, Card, HoverBorderGradient } from "../../components/ui";
 import { toPng } from "html-to-image";
 import { format } from "date-fns";
 import { postJSON } from "../../utils/api-utils";
+import { useTurnstile } from "../../hooks/useTurnstile";
 
 // Lazy load Stripe components to avoid SSR issues
 const StripeCheckout = lazy(() => import("./StripeCheckout"));
@@ -95,6 +96,9 @@ export default function OrderPage() {
     const [searchParams] = useSearchParams();
     const receiptRef = useRef(null);
     const mainContentRef = useRef(null);
+
+    // Turnstile verification (runs once before order submission)
+    const { verify: verifyTurnstile, isVerifying: isTurnstileVerifying, error: turnstileError, token: turnstileToken } = useTurnstile();
 
     // --- State ---
     const [step, setStep] = useState(1); // 1: Bundle, 2: Customs, 3: Info, 4: Payment, 5: Receipt
@@ -406,6 +410,19 @@ export default function OrderPage() {
     const handleSubmitOrder = async (skipNavigation = false) => {
         setIsSubmitting(true);
         setSubmitError(null);
+
+        // Verify human with Turnstile before proceeding (runs once per session)
+        let cfToken = turnstileToken;
+        if (!cfToken) {
+            try {
+                cfToken = await verifyTurnstile();
+            } catch (err) {
+                setSubmitError("Verification failed. Please try again.");
+                setIsSubmitting(false);
+                return;
+            }
+        }
+
         const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
         setOrderId(newOrderId);
 
@@ -443,7 +460,8 @@ export default function OrderPage() {
                 customerEmail: formData.email,
                 customerName: formData.name,
                 orderId: newOrderId,
-                isDemo: !PAYMENTS_ENABLED
+                isDemo: !PAYMENTS_ENABLED,
+                cfTurnstileToken: cfToken
             }, {
                 retries: 3,
                 timeout: 15000, // 15 second timeout for order API
@@ -1153,9 +1171,9 @@ export default function OrderPage() {
                         <p className="text-[#888888] font-montserrat mb-6 leading-relaxed">
                             You can see your complete order summary below. Continue to view your digital receipt!
                         </p>
-                        {submitError && (
+                        {(submitError || turnstileError) && (
                             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400 text-center mb-4">
-                                {submitError}
+                                {submitError || turnstileError}
                             </div>
                         )}
                         <HoverBorderGradient
@@ -1164,12 +1182,12 @@ export default function OrderPage() {
                             duration={1}
                             intensity="normal"
                             onClick={() => handleSubmitOrder()}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isTurnstileVerifying}
                         >
-                            {isSubmitting ? (
+                            {isSubmitting || isTurnstileVerifying ? (
                                 <>
                                     <Loader2 size={16} className="animate-spin" />
-                                    <span>Processing...</span>
+                                    <span>{isTurnstileVerifying ? 'Verifying...' : 'Processing...'}</span>
                                 </>
                             ) : (
                                 <>

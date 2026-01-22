@@ -483,6 +483,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kit.fontawesome.com" />
+        <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
+        {/* Preload LCP image for faster initial paint */}
+        <link rel="preload" as="image" href="/marketing-image.png" fetchPriority="high" />
         {/* Non-render-blocking font loading - replaces @import in global.css */}
         <link
           rel="stylesheet"

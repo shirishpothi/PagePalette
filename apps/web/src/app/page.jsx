@@ -20,25 +20,24 @@ const GALLERY_IMAGES = [
   "/ja-process/image10.jpg", "/ja-process/image11.jpg", "/ja-process/image12.jpg"
 ];
 
-// Animation Variants
+// Animation Variants - optimized for LCP (reduced initial delays)
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
+      staggerChildren: 0.1,
+      delayChildren: 0,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 30, filter: "blur(10px)" },
+  hidden: { opacity: 0.7, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 100, damping: 15 }
+    transition: { type: "spring", stiffness: 120, damping: 20, duration: 0.3 }
   },
 };
 
@@ -386,12 +385,15 @@ export default function HomePage() {
                   animate="animate"
                   className="relative"
                 >
-                  {/* Marketing Image */}
+                  {/* Marketing Image - LCP element */}
                   <motion.img
                     src="/marketing-image.png"
                     alt="PagePalette Notebooks"
                     whileHover={{ scale: 1.05 }}
                     className="w-80 md:w-96 h-auto rounded-xl shadow-2xl"
+                    fetchPriority="high"
+                    loading="eager"
+                    decoding="async"
                   />
                 </motion.div>
               </div>
