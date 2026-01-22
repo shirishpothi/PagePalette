@@ -472,21 +472,21 @@ export default function OrderPage() {
                 setSubmitError(result.error || "Failed to submit order. Please try again.");
                 // If skipNavigation, caller handles it; otherwise proceed with delay
                 if (!skipNavigation) {
-                    setTimeout(() => setStep(45), 2000);
+                    setTimeout(() => setStep(6), 2000);
                 }
                 return;
             }
 
             // Move to animation step (then to receipt) unless caller handles navigation
             if (!skipNavigation) {
-                setStep(45);
+                setStep(6);
             }
         } catch (err) {
             console.error("Order Submission Failed", err);
             setSubmitError("Failed to submit order. Please check your connection and try again.");
             // If skipNavigation, caller handles it; otherwise proceed with delay
             if (!skipNavigation) {
-                setTimeout(() => setStep(45), 2000);
+                setTimeout(() => setStep(6), 2000);
             }
         } finally {
             setIsSubmitting(false);
@@ -1402,14 +1402,14 @@ export default function OrderPage() {
 
     // Auto-advance from processing step after animation completes
     useEffect(() => {
-        if (step === 45) {
+        if (step === 6) {
             const timer = setTimeout(() => setStep(5), 2500);
             return () => clearTimeout(timer);
         }
     }, [step]);
 
     // Processing step with notebook page-turn transition
-    const renderStep45_Processing = () => {
+    const renderStep6_Processing = () => {
         return (
             <div className="max-w-md mx-auto text-center py-16">
                 {/* Notebook page-turn animation container */}
@@ -1720,7 +1720,7 @@ export default function OrderPage() {
                 {step === 2 && renderStep2_Selection()}
                 {step === 3 && renderStep3_Info()}
                 {step === 4 && renderStep4_Payment()}
-                {step === 45 && renderStep45_Processing()}
+                {step === 6 && renderStep6_Processing()}
                 {step === 5 && renderStep5_Receipt()}
                 {step === 15 && renderStep15_Verification()}
             </div>
