@@ -8,8 +8,14 @@ export const HeroHighlight = ({
   className,
   containerClassName,
 }) => {
+  // Skip expensive mouse tracking on mobile/touch devices
+  const [isMobile, setIsMobile] = React.useState(false);
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
+
+  React.useEffect(() => {
+    setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+  }, []);
 
   // SVG patterns for different states - using dark theme colors matching the site
   const dotPatterns = {
@@ -22,7 +28,7 @@ export const HeroHighlight = ({
     clientX,
     clientY,
   }) {
-    if (!currentTarget) return;
+    if (!currentTarget || isMobile) return;
     let { left, top } = currentTarget.getBoundingClientRect();
 
     mouseX.set(clientX - left);
@@ -35,7 +41,7 @@ export const HeroHighlight = ({
         "group relative flex w-full items-center justify-center",
         containerClassName,
       )}
-      onMouseMove={handleMouseMove}
+      onMouseMove={isMobile ? undefined : handleMouseMove}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -43,26 +49,28 @@ export const HeroHighlight = ({
           backgroundImage: dotPatterns.default,
         }}
       />
-      <motion.div
-        className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
-        style={{
-          backgroundImage: dotPatterns.hover,
-          WebkitMaskImage: useMotionTemplate`
-            radial-gradient(
-              200px circle at ${mouseX}px ${mouseY}px,
-              black 0%,
-              transparent 100%
-            )
-          `,
-          maskImage: useMotionTemplate`
-            radial-gradient(
-              200px circle at ${mouseX}px ${mouseY}px,
-              black 0%,
-              transparent 100%
-            )
-          `,
-        }}
-      />
+      {!isMobile && (
+        <motion.div
+          className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100"
+          style={{
+            backgroundImage: dotPatterns.hover,
+            WebkitMaskImage: useMotionTemplate`
+              radial-gradient(
+                200px circle at ${mouseX}px ${mouseY}px,
+                black 0%,
+                transparent 100%
+              )
+            `,
+            maskImage: useMotionTemplate`
+              radial-gradient(
+                200px circle at ${mouseX}px ${mouseY}px,
+                black 0%,
+                transparent 100%
+              )
+            `,
+          }}
+        />
+      )}
 
       <div className={cn("relative z-20", className)}>{children}</div>
     </div>

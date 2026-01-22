@@ -9,31 +9,26 @@ import {
   useRouteError,
 } from 'react-router';
 
-import { useButton } from '@react-aria/button';
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
   type ReactNode,
-  type FC,
   Component,
 } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import './global.css';
 
-import { toPng } from 'html-to-image';
 import fetch from '@/__create/fetch';
 // @ts-ignore
 import { SessionProvider } from '@auth/create/react';
 import { useNavigate } from 'react-router';
-import { serializeError } from 'serialize-error';
 import { Toaster } from 'sonner';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
-import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
 
@@ -46,12 +41,10 @@ if (globalThis.window && globalThis.window !== undefined) {
 const LoadFontsSSR = import.meta.env.SSR ? LoadFonts : null;
 if (import.meta.hot) {
   import.meta.hot.on('update-font-links', (urls: string[]) => {
-    // remove old font links
     for (const link of document.querySelectorAll('link[data-auto-font]')) {
       link.remove();
     }
 
-    // add new ones
     for (const url of urls) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -97,62 +90,49 @@ function SharedErrorBoundary({
   );
 }
 
-/**
- * NOTE: we have a shared error boundary for the app, but then we also expose
- * this in case something goes wrong outside of the normal user's app flow.
- * React-router will mount this one
- */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return <SharedErrorBoundary isOpen={true} />;
 }
 
-function InternalErrorBoundary({ error: errorArg }: Route.ErrorBoundaryProps) {
-  const routeError = useRouteError();
-  const asyncError = useAsyncError();
-  const error = errorArg ?? asyncError ?? routeError;
+function ProductionErrorBoundary() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const animateTimer = setTimeout(() => setIsOpen(true), 100);
     return () => clearTimeout(animateTimer);
   }, []);
-  const { buttonProps: showLogsButtonProps } = useButton(
-    {
-      onPress: useCallback(() => {
-        window.parent.postMessage(
-          {
-            type: 'sandbox:web:show-logs',
-          },
-          '*'
-        );
-      }, []),
-    },
-    useRef<HTMLButtonElement>(null)
-  );
-  const { buttonProps: fixButtonProps } = useButton(
-    {
-      onPress: useCallback(() => {
-        window.parent.postMessage(
-          {
-            type: 'sandbox:web:fix',
-            error: serializeError(error),
-          },
-          '*'
-        );
-        setIsOpen(false);
-      }, [error]),
-      isDisabled: !error,
-    },
-    useRef<HTMLButtonElement>(null)
-  );
-  const { buttonProps: copyButtonProps } = useButton(
-    {
-      onPress: useCallback(() => {
-        navigator.clipboard.writeText(JSON.stringify(serializeError(error)));
-      }, [error]),
-    },
-    useRef<HTMLButtonElement>(null)
-  );
+
+  return <SharedErrorBoundary isOpen={isOpen} />;
+}
+
+function DevErrorBoundary({ error: errorArg }: { error?: unknown }) {
+  const routeError = useRouteError();
+  const asyncError = useAsyncError();
+  const error = errorArg ?? asyncError ?? routeError;
+  const [isOpen, setIsOpen] = useState(false);
+  const [devTools, setDevTools] = useState<typeof import('../__create/devTools') | null>(null);
+
+  useEffect(() => {
+    import('../__create/devTools').then(setDevTools);
+  }, []);
+
+  useEffect(() => {
+    const animateTimer = setTimeout(() => setIsOpen(true), 100);
+    return () => clearTimeout(animateTimer);
+  }, []);
+
+  const handleFix = useCallback(() => {
+    devTools?.postFixMessage(error);
+    setIsOpen(false);
+  }, [error, devTools]);
+
+  const handleShowLogs = useCallback(() => {
+    devTools?.postShowLogsMessage();
+  }, [devTools]);
+
+  const handleCopy = useCallback(() => {
+    devTools?.copyErrorToClipboard(error);
+  }, [error, devTools]);
 
   function isInIframe() {
     try {
@@ -161,6 +141,7 @@ function InternalErrorBoundary({ error: errorArg }: Route.ErrorBoundaryProps) {
       return true;
     }
   }
+
   return (
     <SharedErrorBoundary isOpen={isOpen}>
       {isInIframe() ? (
@@ -169,7 +150,7 @@ function InternalErrorBoundary({ error: errorArg }: Route.ErrorBoundaryProps) {
             <button
               className="flex flex-row items-center justify-center gap-[4px] outline-none transition-colors rounded-[8px] border-[1px] bg-[#f9f9f9] hover:bg-[#dbdbdb] active:bg-[#c4c4c4] border-[#c4c4c4] text-[#18191B] text-sm px-[8px] py-[4px] cursor-pointer"
               type="button"
-              {...fixButtonProps}
+              onClick={handleFix}
             >
               Try to fix
             </button>
@@ -178,7 +159,7 @@ function InternalErrorBoundary({ error: errorArg }: Route.ErrorBoundaryProps) {
           <button
             className="flex flex-row items-center justify-center gap-[4px] outline-none transition-colors rounded-[8px] border-[1px] bg-[#2C2D2F] hover:bg-[#414243] active:bg-[#555658] border-[#414243] text-white text-sm px-[8px] py-[4px]"
             type="button"
-            {...showLogsButtonProps}
+            onClick={handleShowLogs}
           >
             Show logs
           </button>
@@ -187,13 +168,20 @@ function InternalErrorBoundary({ error: errorArg }: Route.ErrorBoundaryProps) {
         <button
           className="flex flex-row items-center justify-center gap-[4px] outline-none transition-colors rounded-[8px] border-[1px] bg-[#2C2D2F] hover:bg-[#414243] active:bg-[#555658] border-[#414243] text-white text-sm px-[8px] py-[4px] w-fit"
           type="button"
-          {...copyButtonProps}
+          onClick={handleCopy}
         >
           Copy error
         </button>
       )}
     </SharedErrorBoundary>
   );
+}
+
+function InternalErrorBoundary({ error }: { error?: unknown }) {
+  if (import.meta.env.DEV) {
+    return <DevErrorBoundary error={error} />;
+  }
+  return <ProductionErrorBoundary />;
 }
 
 type ErrorBoundaryProps = {
@@ -215,7 +203,7 @@ class ErrorBoundaryWrapper extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     if (this.state.hasError) {
-      return <InternalErrorBoundary error={this.state.error} params={{}} />;
+      return <InternalErrorBoundary error={this.state.error} />;
     }
     return this.props.children;
   }
@@ -245,50 +233,43 @@ export const ClientOnly: React.FC<ClientOnlyProps> = ({ loader }) => {
   );
 };
 
-/**
- * useHmrConnection()
- * ------------------
- * • `true`  → HMR socket is healthy
- * • `false` → socket lost (Vite is polling / may auto‑reload soon)
- *
- * Works only in dev; in prod it always returns `true`.
- */
-export function useHmrConnection(): boolean {
-  const [connected, setConnected] = useState(() => !!import.meta.hot);
+const useHmrConnection = () => {
+  const [isHmrConnected, setIsHmrConnected] = useState(
+    typeof import.meta.hot?.data?.connected === 'boolean'
+      ? import.meta.hot.data.connected
+      : false
+  );
 
   useEffect(() => {
-    // No HMR object outside dev builds
     if (!import.meta.hot) return;
 
-    /** Fired the moment the WS closes unexpectedly */
-    const onDisconnect = () => setConnected(false);
-    /** Fired every time the WS (re‑)opens */
-    const onConnect = () => setConnected(true);
+    const onConnect = () => {
+      if (import.meta.hot) import.meta.hot.data.connected = true;
+      setIsHmrConnected(true);
+    };
+    const onDisconnect = () => {
+      if (import.meta.hot) import.meta.hot.data.connected = false;
+      setIsHmrConnected(false);
+    };
 
-    import.meta.hot.on('vite:ws:disconnect', onDisconnect);
     import.meta.hot.on('vite:ws:connect', onConnect);
-
-    // Optional: catch the “about to full‑reload” event as a last resort
-    const onFullReload = () => setConnected(false);
-    import.meta.hot.on('vite:beforeFullReload', onFullReload);
+    import.meta.hot.on('vite:ws:disconnect', onDisconnect);
 
     return () => {
-      import.meta.hot?.off('vite:ws:disconnect', onDisconnect);
-      import.meta.hot?.off('vite:ws:connect', onConnect);
-      import.meta.hot?.off('vite:beforeFullReload', onFullReload);
+      import.meta.hot?.off?.('vite:ws:connect', onConnect);
+      import.meta.hot?.off?.('vite:ws:disconnect', onDisconnect);
     };
   }, []);
 
-  return connected;
-}
+  return isHmrConnected;
+};
 
-const healthyResponseType = 'sandbox:web:healthcheck:response';
 const useHandshakeParent = () => {
   const isHmrConnected = useHmrConnection();
   useEffect(() => {
     const healthyResponse = {
-      type: healthyResponseType,
-      healthy: isHmrConnected,
+      type: 'sandbox:web:healthcheck:response',
+      isHmrConnected,
     };
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'sandbox:web:healthcheck') {
@@ -296,8 +277,6 @@ const useHandshakeParent = () => {
       }
     };
     window.addEventListener('message', handleMessage);
-    // Immediately respond to the parent window with a healthy response in
-    // case we missed the healthcheck message
     window.parent.postMessage(healthyResponse, '*');
     return () => {
       window.removeEventListener('message', handleMessage);
@@ -305,129 +284,25 @@ const useHandshakeParent = () => {
   }, [isHmrConnected]);
 };
 
-const useCodeGen = () => {
-  const { startCodeGen, setCodeGenGenerating, completeCodeGen, errorCodeGen, stopCodeGen } =
-    useSandboxStore();
-
+function useDevTools() {
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      const { type } = event.data;
+    if (!import.meta.env.DEV) return;
 
-      switch (type) {
-        case 'sandbox:web:codegen:started':
-          startCodeGen();
-          break;
-        case 'sandbox:web:codegen:generating':
-          setCodeGenGenerating();
-          break;
-        case 'sandbox:web:codegen:complete':
-          completeCodeGen();
-          break;
-        case 'sandbox:web:codegen:error':
-          errorCodeGen();
-          break;
-        case 'sandbox:web:codegen:stopped':
-          stopCodeGen();
-          break;
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [startCodeGen, setCodeGenGenerating, completeCodeGen, errorCodeGen, stopCodeGen]);
-};
+    let cleanup: (() => void) | undefined;
 
-const useRefresh = () => {
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'sandbox:web:refresh:request') {
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-        window.parent.postMessage({ type: 'sandbox:web:refresh:complete' }, '*');
-      }
-    };
-    window.addEventListener('message', handleMessage);
+    import('../__create/devTools').then((module) => {
+      cleanup = module.install();
+    });
+
     return () => {
-      window.removeEventListener('message', handleMessage);
+      cleanup?.();
     };
   }, []);
-};
+}
 
-const waitForScreenshotReady = async () => {
-  const images = Array.from(document.images);
-
-  await Promise.all([
-    // make sure custom fonts are loaded
-    'fonts' in document ? document.fonts.ready : Promise.resolve(),
-    ...images.map(
-      (img) =>
-        new Promise((resolve) => {
-          img.crossOrigin = 'anonymous';
-          if (img.complete) {
-            resolve(true);
-            return;
-          }
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(true);
-        })
-    ),
-  ]);
-
-  // small buffer to ensure rendering is stable
-  await new Promise((resolve) => setTimeout(resolve, 250));
-};
-
-export const useHandleScreenshotRequest = () => {
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data.type === 'sandbox:web:screenshot:request') {
-        try {
-          await waitForScreenshotReady();
-
-          const width = window.innerWidth;
-          const aspectRatio = 16 / 9;
-          const height = Math.floor(width / aspectRatio);
-
-          // html-to-image already handles CORS, fonts, and CSS inlining
-          const dataUrl = await toPng(document.body, {
-            cacheBust: true,
-            skipFonts: false,
-            width,
-            height,
-            style: {
-              // force snapshot sizing
-              width: `${width}px`,
-              height: `${height}px`,
-              margin: '0',
-            },
-          });
-
-          window.parent.postMessage({ type: 'sandbox:web:screenshot:response', dataUrl }, '*');
-        } catch (error) {
-          window.parent.postMessage(
-            {
-              type: 'sandbox:web:screenshot:error',
-              error: error instanceof Error ? error.message : String(error),
-            },
-            '*'
-          );
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, []);
-};
 export function Layout({ children }: { children: ReactNode }) {
   useHandshakeParent();
-  useCodeGen();
-  useRefresh();
-  useHandleScreenshotRequest();
+  useDevTools();
   useDevServerHeartbeat();
   const navigate = useNavigate();
   const location = useLocation();
@@ -479,14 +354,11 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta property="twitter:description" content={siteDescription} />
         <meta property="twitter:image" content={siteImage} />
         <title>{siteTitle}</title>
-        {/* Preconnect to critical third-party origins for faster resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kit.fontawesome.com" />
         <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
-        {/* Preload LCP image for faster initial paint */}
         <link rel="preload" as="image" href="/marketing-image.png" fetchPriority="high" />
-        {/* Non-render-blocking font loading - replaces @import in global.css */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
@@ -523,7 +395,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <Analytics debug={isDev} />
         <ScrollRestoration />
         <Scripts />
-        {/* Load FontAwesome asynchronously with defer to not block rendering */}
         <script src="https://kit.fontawesome.com/2c15cc0cc7.js" crossOrigin="anonymous" defer />
       </body>
     </html>
