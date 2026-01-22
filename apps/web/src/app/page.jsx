@@ -54,7 +54,7 @@ function DeferredSection({ children, rootMargin = "200px" }) {
   }, [isVisible, rootMargin]);
 
   return (
-    <div ref={sectionRef} style={{ contentVisibility: "auto" }}>
+    <div ref={sectionRef} style={{ minHeight: isVisible ? undefined : "100px" }}>
       {isVisible ? children : null}
     </div>
   );
