@@ -356,7 +356,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <title>{siteTitle}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://kit.fontawesome.com" />
         <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
         <link rel="preload" as="image" href="/marketing-image.png" fetchPriority="high" />
         <link
@@ -395,7 +394,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <Analytics debug={isDev} />
         <ScrollRestoration />
         <Scripts />
-        <script src="https://kit.fontawesome.com/2c15cc0cc7.js" crossOrigin="anonymous" defer />
       </body>
     </html>
   );

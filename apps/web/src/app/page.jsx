@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { ArrowRight, Sparkles, Leaf, Recycle, Heart } from "lucide-react";
 import { Button, Badge, Highlight, HoverBorderGradient } from "../components/ui";
 import { motion } from "motion/react";
@@ -31,6 +31,34 @@ const itemVariants = {
     transition: { type: "spring", stiffness: 120, damping: 20, duration: 0.3 }
   },
 };
+
+function DeferredSection({ children, rootMargin = "200px" }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    if (isVisible) return;
+    const node = sectionRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible, rootMargin]);
+
+  return (
+    <div ref={sectionRef} style={{ contentVisibility: "auto" }}>
+      {isVisible ? children : null}
+    </div>
+  );
+}
 
 
 
@@ -234,6 +262,8 @@ export default function HomePage() {
                     fetchPriority="high"
                     loading="eager"
                     decoding="async"
+                    width="384"
+                    height="512"
                   />
                 </div>
               </div>
@@ -263,25 +293,35 @@ export default function HomePage() {
         </div>
       </div>
 
-      <Suspense fallback={null}>
-        <GallerySection />
-      </Suspense>
+      <DeferredSection>
+        <Suspense fallback={null}>
+          <GallerySection />
+        </Suspense>
+      </DeferredSection>
 
-      <Suspense fallback={null}>
-        <FeaturesSection />
-      </Suspense>
+      <DeferredSection>
+        <Suspense fallback={null}>
+          <FeaturesSection />
+        </Suspense>
+      </DeferredSection>
 
-      <Suspense fallback={null}>
-        <PricingSection />
-      </Suspense>
+      <DeferredSection>
+        <Suspense fallback={null}>
+          <PricingSection />
+        </Suspense>
+      </DeferredSection>
 
-      <Suspense fallback={null}>
-        <CTASection />
-      </Suspense>
+      <DeferredSection>
+        <Suspense fallback={null}>
+          <CTASection />
+        </Suspense>
+      </DeferredSection>
 
-      <Suspense fallback={null}>
-        <Footer />
-      </Suspense>
+      <DeferredSection>
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
+      </DeferredSection>
     </div>
   );
 }

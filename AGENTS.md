@@ -1,0 +1,15 @@
+# AGENTS
+- Follow repo rules in [.github/copilot-instructions.md](file:///Users/shirishpothi/Desktop/School/JA/create-anything/.github/copilot-instructions.md).
+- Monorepo: `apps/web` (React Router web) + `apps/mobile` (Expo Router); shared sandbox/HMR helpers live in `apps/**/__create`.
+- Web routing is file-based: create `page.jsx` folders; do not hand-edit generated [apps/web/src/app/routes.ts](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/web/src/app/routes.ts).
+- Web shell: preserve QueryClient + sandbox postMessage listeners in [layout.jsx](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/web/src/app/layout.jsx) and [root.tsx](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/web/src/app/root.tsx).
+- Mobile entry/routing: keep providers and postMessage hooks in [index.tsx](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/mobile/index.tsx) + [App.tsx](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/mobile/App.tsx); screens live in [apps/mobile/src/app](file:///Users/shirishpothi/Desktop/School/JA/create-anything/apps/mobile/src/app).
+- Data: TanStack Query clients are centralized (web `layout.jsx`, mobile `_layout.jsx`); reuse them instead of new instances.
+- Web commands (from `apps/web`): `npm run dev`, `npm run build`, `npm run start`, `npm run typecheck`.
+- Web tests: `npx vitest` (single test: `npx vitest path/to/test -t "name"`).
+- Mobile commands (from `apps/mobile`): `npm install` (runs patch-package), `npx expo start`.
+- Mobile tests: `npx jest` (single test: `npx jest path/to/test -t "name"`).
+- Code style: React/Expo functional components, hooks-first; keep file-based routing conventions (`page.jsx`, `_layout.jsx`, `[param]`, `[...catchall]`).
+- Imports: prefer project aliases where configured (mobile uses `@/app/...` in tests); avoid relative deep chains.
+- Error handling: preserve SharedErrorBoundary usage and sandbox serialization/postMessage hooks.
+- Assets: web assets in `apps/web/public`; mobile assets in `apps/mobile/assets` or `apps/mobile/public` (Expo requires import/require).

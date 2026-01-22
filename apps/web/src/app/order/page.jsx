@@ -64,8 +64,16 @@ function BrowsePagePalsCard({ onClick }) {
     return (
         <div className="mt-4 md:mt-6 max-w-4xl mx-auto">
             <div
+                role="button"
+                tabIndex={0}
                 onClick={onClick}
-                className="relative p-4 md:p-5 rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden bg-[#0f1115]/80 backdrop-blur-sm border border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"
+                onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onClick();
+                    }
+                }}
+                className="relative p-4 md:p-5 rounded-2xl cursor-pointer transition-all duration-300 group active:scale-[0.98] overflow-hidden bg-[#0f1115]/80 backdrop-blur-sm border border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515] focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
             >
                 {/* Content */}
                 <div className="flex items-center justify-between mb-3">
@@ -355,6 +363,68 @@ export default function OrderPage() {
 
     const currentTotal = calculateTotal();
 
+    const handleKeyboardNext = () => {
+        if (isSubmitting) return;
+        switch (step) {
+            case 1:
+                setStep(2);
+                return;
+            case 2:
+                if (browseMode) {
+                    setStep(1);
+                } else {
+                    setStep(3);
+                }
+                return;
+            case 15:
+                if (isVerificationComplete) {
+                    setStep(3);
+                }
+                return;
+            case 3:
+                if (validateForm()) {
+                    setStep(4);
+                } else {
+                    setFormTouched({ name: true, email: true, studentName: true, studentEmail: true, phone: true, addressLine1: true, postalCode: true });
+                }
+                return;
+            case 4:
+                if (!PAYMENTS_ENABLED) {
+                    handleSubmitOrder();
+                    return;
+                }
+                if (paymentMethod !== 'card') {
+                    handleSubmitOrder();
+                }
+                return;
+            case 5:
+            case 6:
+            default:
+                return;
+        }
+    };
+
+    const handleGlobalKeyDown = useCallback((event) => {
+        if (event.defaultPrevented) return;
+        const target = event.target;
+        const tagName = target?.tagName?.toLowerCase();
+        const isEditable = target?.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+        if (event.key === 'Enter') {
+            if (isEditable && tagName !== 'select') return;
+            event.preventDefault();
+            handleKeyboardNext();
+        }
+        if (event.key === 'ArrowRight' && !isEditable) {
+            event.preventDefault();
+            handleKeyboardNext();
+        }
+    }, [handleKeyboardNext]);
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, [handleGlobalKeyDown]);
+
     // --- Handlers ---
 
     const handleBundleSelect = (bundle) => {
@@ -531,15 +601,23 @@ export default function OrderPage() {
                 {BUNDLES.map(bundle => (
                     <div
                         key={bundle.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleBundleSelect(bundle)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                handleBundleSelect(bundle);
+                            }
+                        }}
                         className={`
-              relative p-4 md:p-6 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
-              ${bundle.id === 'complete'
-                                ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
-                                : selectedBundle.id === bundle.id
-                                    ? "bg-[#36484d]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/10"
-                                    : "bg-[#0f1115]/80 border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"}
-            `}
+                relative p-4 md:p-6 rounded-2xl border cursor-pointer transition-all duration-300 group backdrop-blur-sm flex flex-col overflow-hidden active:scale-[0.98]
+                ${bundle.id === 'complete'
+                                    ? "bg-gradient-to-br from-[#36484d]/30 to-[#2a3a40]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/20"
+                                    : selectedBundle.id === bundle.id
+                                        ? "bg-[#36484d]/20 border-[#4ADE80] shadow-lg shadow-[#4ADE80]/10"
+                                        : "bg-[#0f1115]/80 border-[#252525] hover:border-[#4ADE80]/50 hover:bg-[#151515]"}
+                focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]`}
                     >
                         {/* Best Value Badge for Complete Bundle - positioned in corner with proper offset */}
                         {bundle.id === 'complete' && (
@@ -912,7 +990,7 @@ export default function OrderPage() {
             <div className="bg-[#0f1115] border border-[#1f1f1f] rounded-2xl p-4 md:p-8 space-y-4 md:space-y-8">
 
                 {/* Role Type - Horizontal on mobile for less scrolling */}
-                <div className="grid grid-cols-4 gap-2 md:gap-3">
+                <div className="grid grid-cols-4 gap-2 md:gap-3" role="radiogroup" aria-label="Customer role">
                     {[
                         { id: 'student', icon: GraduationCap, label: 'Student' },
                         { id: 'parent', icon: User, label: 'Parent' },
@@ -922,9 +1000,17 @@ export default function OrderPage() {
                         <button
                             key={r.id}
                             onClick={() => setRole(r.id)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setRole(r.id);
+                                }
+                            }}
+                            role="radio"
+                            aria-checked={role === r.id}
                             className={`py-2 md:py-3 rounded-xl border flex flex-col items-center gap-1 md:gap-2 transition-all active:scale-95
-                 ${role === r.id ? 'bg-[#4ADE80]/10 border-[#4ADE80] text-[#4ADE80]' : 'bg-[#151515] border-[#252525] text-[#666] hover:bg-[#1a1a1a]'}
-               `}
+                  ${role === r.id ? 'bg-[#4ADE80]/10 border-[#4ADE80] text-[#4ADE80]' : 'bg-[#151515] border-[#252525] text-[#666] hover:bg-[#1a1a1a]'}
+                `}
                         >
                             <r.icon size={18} />
                             <span className="text-xs md:text-sm font-medium">{r.label}</span>
@@ -1211,11 +1297,20 @@ export default function OrderPage() {
                         <p className="text-sm md:text-base text-[#888888]">Choose a payment method</p>
                     </div>
 
-                    <div className="space-y-3 md:space-y-4">
+                    <div className="space-y-3 md:space-y-4" role="radiogroup" aria-label="Payment method">
                         {/* PayNow QR Option - Default */}
                         <div
+                            role="radio"
+                            tabIndex={0}
+                            aria-checked={paymentMethod === 'paynow'}
                             onClick={() => setPaymentMethod('paynow')}
-                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setPaymentMethod('paynow');
+                                }
+                            }}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'paynow' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'} focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]`}
                         >
                             <div className="flex items-center gap-3 md:gap-4">
                                 <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'paynow' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
@@ -1250,8 +1345,17 @@ export default function OrderPage() {
 
                         {/* Card Payment Option - Stripe Embedded Checkout */}
                         <div
+                            role="radio"
+                            tabIndex={0}
+                            aria-checked={paymentMethod === 'card'}
                             onClick={() => setPaymentMethod('card')}
-                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'card' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setPaymentMethod('card');
+                                }
+                            }}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'card' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'} focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]`}
                         >
                             <div className="flex items-center gap-3 md:gap-4">
                                 <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'card' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
@@ -1291,8 +1395,17 @@ export default function OrderPage() {
 
                         {/* Cash Option */}
                         <div
+                            role="radio"
+                            tabIndex={0}
+                            aria-checked={paymentMethod === 'cash'}
                             onClick={() => setPaymentMethod('cash')}
-                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'cash' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'}`}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setPaymentMethod('cash');
+                                }
+                            }}
+                            className={`p-4 md:p-6 rounded-2xl border cursor-pointer transition-all active:scale-[0.98] ${paymentMethod === 'cash' ? 'bg-[#4ADE80]/5 border-[#4ADE80] ring-1 ring-[#4ADE80]' : 'bg-[#0f1115] border-[#252525] hover:bg-[#151515]'} focus:outline-none focus:ring-2 focus:ring-[#4ADE80] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]`}
                         >
                             <div className="flex items-center gap-3 md:gap-4">
                                 <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border flex items-center justify-center flex-shrink-0 ${paymentMethod === 'cash' ? 'border-[#4ADE80] bg-[#4ADE80]' : 'border-[#666]'}`}>
