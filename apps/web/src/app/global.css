@@ -1,9 +1,8 @@
 /* Typography imports — optimized for performance
-   - Limited weights to only what's used (600, 700)
-   - Using display=swap for faster initial render
-   - Fonts are preconnected in root.tsx
+   - Fonts are now loaded via non-render-blocking <link> in root.tsx
+   - This eliminates the CSS @import render-blocking issue
+   - See root.tsx for the actual font loading implementation
 */
-@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;

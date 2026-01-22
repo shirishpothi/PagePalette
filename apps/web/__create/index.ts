@@ -297,10 +297,108 @@ app.get('/api/order', async (c) => {
   return c.json({ status: 'Order API is working', timestamp: new Date().toISOString() });
 });
 
+// Simple in-memory rate limiter for order API
+const orderRateLimiter = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const RATE_LIMIT_MAX_REQUESTS = 5; // 5 orders per 10 minutes per IP
+
+// Processed order IDs to prevent duplicates (in-memory, clears on restart)
+const processedOrderIds = new Set<string>();
+
+// Helper to sanitize HTML in user input
+function sanitizeHtml(str: string | undefined): string {
+  if (!str || typeof str !== 'string') return '';
+  return str.replace(/[<>"'&]/g, (char) => {
+    const entities: Record<string, string> = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '&': '&amp;' };
+    return entities[char] || char;
+  }).slice(0, 500); // Limit length
+}
+
+// Email validation regex
+function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
 app.post('/api/order', async (c) => {
   try {
+    // Rate limiting check
+    const forwarded = c.req.header('x-forwarded-for');
+    const clientIP = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+    const now = Date.now();
+    
+    const rateData = orderRateLimiter.get(clientIP);
+    if (rateData) {
+      if (now < rateData.resetAt) {
+        if (rateData.count >= RATE_LIMIT_MAX_REQUESTS) {
+          console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+          return c.json({ error: 'Too many requests. Please try again later.' }, 429);
+        }
+        rateData.count++;
+      } else {
+        orderRateLimiter.set(clientIP, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+      }
+    } else {
+      orderRateLimiter.set(clientIP, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    }
+
+    // Origin check (if Origin header is present, validate it)
+    const origin = c.req.header('origin');
+    const allowedOrigins = [
+      process.env.NEXT_PUBLIC_CREATE_HOST,
+      'https://pagepalette.sg',
+      'https://www.pagepalette.sg',
+      'http://localhost:4000',
+    ].filter(Boolean);
+    
+    if (origin && !allowedOrigins.some(allowed => origin.includes(allowed as string))) {
+      console.warn(`Suspicious origin rejected: ${origin}`);
+      return c.json({ error: 'Invalid request origin' }, 403);
+    }
+
     const body = await c.req.json();
     const { orderData, customerEmail, customerName, orderId } = body;
+
+    // Input validation
+    if (!orderId || typeof orderId !== 'string' || orderId.length > 100) {
+      return c.json({ error: 'Invalid order ID' }, 400);
+    }
+
+    // Check for duplicate order
+    if (processedOrderIds.has(orderId)) {
+      console.warn(`Duplicate order rejected: ${orderId}`);
+      return c.json({ error: 'This order has already been processed' }, 409);
+    }
+
+    if (customerEmail && !isValidEmail(customerEmail)) {
+      return c.json({ error: 'Invalid email address' }, 400);
+    }
+
+    // Sanitize inputs for email templates
+    const safeCustomerName = sanitizeHtml(customerName);
+    const safeOrderId = sanitizeHtml(orderId);
+    const safeOrderData = orderData ? {
+      Bundle: sanitizeHtml(orderData.Bundle),
+      Items: sanitizeHtml(orderData.Items),
+      "Total Amount": sanitizeHtml(orderData["Total Amount"]),
+      "Payment Method": sanitizeHtml(orderData["Payment Method"]),
+      Role: sanitizeHtml(orderData.Role),
+      "Student Name": sanitizeHtml(orderData["Student Name"]),
+      "Student Email": sanitizeHtml(orderData["Student Email"]),
+      Year: sanitizeHtml(orderData.Year),
+      Class: sanitizeHtml(orderData.Class),
+    } : null;
+
+    // Mark order as processed
+    processedOrderIds.add(orderId);
+    // Clean up old entries (keep last 10000)
+    if (processedOrderIds.size > 10000) {
+      const iterator = processedOrderIds.values();
+      for (let i = 0; i < 1000; i++) {
+        processedOrderIds.delete(iterator.next().value);
+      }
+    }
 
     // 1. Save to SheetDB
     const sheetPayload = { data: [orderData] };
@@ -319,25 +417,25 @@ app.post('/api/order', async (c) => {
       console.error("SheetDB Error:", await sheetResponse.text());
     }
 
-    // 2. Send confirmation email to customer
+    // 2. Send confirmation email to customer (using sanitized values)
     if (customerEmail && process.env.RESEND_API_KEY) {
       try {
         await resend.emails.send({
           from: process.env.FROM_EMAIL || 'PagePalette <orders@resend.dev>',
           to: customerEmail,
-          subject: `Order Confirmed - ${orderId}`,
+          subject: `Order Confirmed - ${safeOrderId}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #0f1115; color: white; padding: 40px; border-radius: 16px;">
               <h1 style="color: #4ADE80; margin-bottom: 24px;">Order Confirmed! 🎉</h1>
-              <p>Hi ${customerName},</p>
+              <p>Hi ${safeCustomerName || 'Customer'},</p>
               <p>Thank you for your order! Here are your details:</p>
               
               <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; margin: 24px 0;">
-                <p style="margin: 8px 0;"><strong>Order ID:</strong> ${orderId}</p>
-                <p style="margin: 8px 0;"><strong>Bundle:</strong> ${orderData?.Bundle || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Items:</strong> ${orderData?.Items || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Total:</strong> $${orderData?.["Total Amount"] || 'N/A'}</p>
-                <p style="margin: 8px 0;"><strong>Payment Method:</strong> ${orderData?.["Payment Method"] || 'N/A'}</p>
+                <p style="margin: 8px 0;"><strong>Order ID:</strong> ${safeOrderId}</p>
+                <p style="margin: 8px 0;"><strong>Bundle:</strong> ${safeOrderData?.Bundle || 'N/A'}</p>
+                <p style="margin: 8px 0;"><strong>Items:</strong> ${safeOrderData?.Items || 'N/A'}</p>
+                <p style="margin: 8px 0;"><strong>Total:</strong> $${safeOrderData?.["Total Amount"] || 'N/A'}</p>
+                <p style="margin: 8px 0;"><strong>Payment Method:</strong> ${safeOrderData?.["Payment Method"] || 'N/A'}</p>
               </div>
               
               <p style="color: #888;">Please complete your payment and send a screenshot to <strong style="color: #4ADE80;">shirish.pothi.27@nexus.edu.sg</strong></p>
@@ -350,25 +448,25 @@ app.post('/api/order', async (c) => {
         console.error("Email to customer failed:", emailError);
       }
 
-      // 3. Send notification to admin
+      // 3. Send notification to admin (using sanitized values)
       if (process.env.ADMIN_EMAIL) {
         try {
           await resend.emails.send({
             from: process.env.FROM_EMAIL || 'PagePalette <orders@resend.dev>',
             to: process.env.ADMIN_EMAIL,
-            subject: `New Order - ${orderId}`,
+            subject: `New Order - ${safeOrderId}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2>New Order Received!</h2>
-                <p><strong>Order ID:</strong> ${orderId}</p>
-                <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
-                <p><strong>Bundle:</strong> ${orderData?.Bundle || 'N/A'}</p>
-                <p><strong>Items:</strong> ${orderData?.Items || 'N/A'}</p>
-                <p><strong>Total:</strong> $${orderData?.["Total Amount"] || 'N/A'}</p>
-                <p><strong>Payment Method:</strong> ${orderData?.["Payment Method"] || 'N/A'}</p>
-                <p><strong>Role:</strong> ${orderData?.Role || 'N/A'}</p>
-                ${orderData?.["Student Name"] && orderData["Student Name"] !== "N/A" ? `<p><strong>Student:</strong> ${orderData["Student Name"]} (${orderData["Student Email"]})</p>` : ''}
-                ${orderData?.Year && orderData.Year !== "N/A" ? `<p><strong>Year/Class:</strong> ${orderData.Year}/${orderData.Class}</p>` : ''}
+                <p><strong>Order ID:</strong> ${safeOrderId}</p>
+                <p><strong>Customer:</strong> ${safeCustomerName} (${customerEmail})</p>
+                <p><strong>Bundle:</strong> ${safeOrderData?.Bundle || 'N/A'}</p>
+                <p><strong>Items:</strong> ${safeOrderData?.Items || 'N/A'}</p>
+                <p><strong>Total:</strong> $${safeOrderData?.["Total Amount"] || 'N/A'}</p>
+                <p><strong>Payment Method:</strong> ${safeOrderData?.["Payment Method"] || 'N/A'}</p>
+                <p><strong>Role:</strong> ${safeOrderData?.Role || 'N/A'}</p>
+                ${safeOrderData?.["Student Name"] && safeOrderData["Student Name"] !== "N/A" ? `<p><strong>Student:</strong> ${safeOrderData["Student Name"]} (${safeOrderData["Student Email"]})</p>` : ''}
+                ${safeOrderData?.Year && safeOrderData.Year !== "N/A" ? `<p><strong>Year/Class:</strong> ${safeOrderData.Year}/${safeOrderData.Class}</p>` : ''}
               </div>
             `
           });

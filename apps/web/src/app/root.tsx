@@ -483,6 +483,20 @@ export function Layout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://kit.fontawesome.com" />
+        {/* Non-render-blocking font loading - replaces @import in global.css */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+          media="print"
+          // @ts-expect-error - onLoad handler for non-blocking font load
+          onLoad="this.media='all'"
+        />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
+          />
+        </noscript>
         <Meta />
         <Links />
         {isDev ? (
@@ -495,11 +509,15 @@ export function Layout({ children }: { children: ReactNode }) {
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
-        <ClientOnly loader={() => children} />
+        {isDev ? (
+          <ClientOnly loader={() => children} />
+        ) : (
+          children
+        )}
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
-        <SpeedInsights />
-        <Analytics />
+        <SpeedInsights debug={isDev} />
+        <Analytics debug={isDev} />
         <ScrollRestoration />
         <Scripts />
         {/* Load FontAwesome asynchronously with defer to not block rendering */}
