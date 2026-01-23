@@ -22,7 +22,7 @@ export default function Footer() {
               <img
                 src="/logo-full-256.jpg"
                 alt="PagePalette"
-                className="h-12 sm:h-16 md:h-20 w-auto mx-auto object-contain brightness-0 invert transition-all duration-300 group-hover:scale-105"
+                className="h-12 sm:h-16 md:h-20 w-auto mx-auto object-contain transition-all duration-300 group-hover:scale-105"
                 width="256"
                 height="64"
                 loading="lazy"

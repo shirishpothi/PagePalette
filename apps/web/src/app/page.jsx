@@ -122,7 +122,7 @@ export default function HomePage() {
                   width="160"
                   height="40"
                   fetchPriority="high"
-                  className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
+                  className="h-8 md:h-10 w-auto object-contain"
                 />
               </picture>
             </a>

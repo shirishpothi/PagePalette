@@ -229,6 +229,7 @@ export default function OrderPage() {
     const [submitError, setSubmitError] = useState(null);
     const [orderId, setOrderId] = useState("");
     const [receiptUrl, setReceiptUrl] = useState(null);
+    const [verificationFailed, setVerificationFailed] = useState(false); // Skip API calls if Turnstile failed
 
     // Check for Stripe return (after payment completion)
     useEffect(() => {
@@ -481,20 +482,35 @@ export default function OrderPage() {
         setIsSubmitting(true);
         setSubmitError(null);
 
+        // Generate order ID upfront (needed for receipt even if verification fails)
+        const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
+        setOrderId(newOrderId);
+
         // Verify human with Turnstile before proceeding (runs once per session)
         let cfToken = turnstileToken;
-        if (!cfToken) {
+        if (!cfToken && !verificationFailed) {
             try {
                 cfToken = await verifyTurnstile();
             } catch (err) {
-                setSubmitError("Verification failed. Please try again.");
+                // Verification failed - allow proceeding to receipt but skip API calls
+                console.warn("Turnstile verification failed, proceeding without API calls");
+                setVerificationFailed(true);
                 setIsSubmitting(false);
+                if (!skipNavigation) {
+                    setStep(6); // Go to processing/receipt animation
+                }
                 return;
             }
         }
 
-        const newOrderId = `PP-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}-${format(new Date(), "MMdd")}`;
-        setOrderId(newOrderId);
+        // If verification previously failed, skip all API calls to avoid charges
+        if (verificationFailed) {
+            setIsSubmitting(false);
+            if (!skipNavigation) {
+                setStep(6);
+            }
+            return;
+        }
 
         // Construct Item String
         const allItems = ["Tree (Free)", ...bundleSelections.map(i => i.label), ...extraSelections.map(i => `${i.label} (Extra)`)];
@@ -608,7 +624,7 @@ export default function OrderPage() {
                     <img
                         src="/logo-full-256.jpg"
                         alt="PagePalette"
-                        className="h-10 md:h-12 w-auto mx-auto object-contain brightness-0 invert opacity-80"
+                        className="h-10 md:h-12 w-auto mx-auto object-contain opacity-80"
                         loading="lazy"
                         decoding="async"
                         width="192"

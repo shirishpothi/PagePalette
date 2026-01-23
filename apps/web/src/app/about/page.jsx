@@ -112,7 +112,7 @@ export default function AboutPage() {
                                 <img
                                     src="/logo-full-256.jpg"
                                     alt="PagePalette"
-                                    className="h-8 md:h-10 w-auto object-contain brightness-0 invert"
+                                    className="h-8 md:h-10 w-auto object-contain"
                                     width="160"
                                     height="40"
                                     loading="lazy"
@@ -344,7 +344,7 @@ export default function AboutPage() {
                                 <img
                                     src="/logo-full-256.jpg"
                                     alt="PagePalette"
-                                    className="h-8 w-auto object-contain brightness-0 invert"
+                                    className="h-8 w-auto object-contain"
                                     width="128"
                                     height="32"
                                     loading="lazy"
