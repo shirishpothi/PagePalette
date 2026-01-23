@@ -1,18 +1,13 @@
-/* Optimized font loading with swap for faster initial render */
-/* Use preconnect for faster DNS/TLS for font loading */
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+/* Font loaded via JS for non-blocking behavior - see index.web.tsx */
 
 /* Font-display swap ensures text is visible immediately with fallback font */
 @font-face {
   font-family: 'Inter';
   font-display: swap;
-  /* Size-adjust helps reduce CLS when font loads */
   size-adjust: 100%;
 }
 
-/* Preload critical font weights for faster LCP */
 :root {
-  /* CSS containment for better rendering performance */
   contain: layout style;
 }
 

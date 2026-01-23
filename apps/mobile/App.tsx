@@ -1,12 +1,14 @@
 import { usePathname, useRouter } from 'expo-router';
 import { App } from 'expo-router/build/qualified-entry';
-import React, { memo, useEffect, useState, useCallback, useMemo, startTransition } from 'react';
+import React, { memo, useEffect, lazy, Suspense } from 'react';
 import { ErrorBoundaryWrapper } from './__create/SharedErrorBoundary';
 import './src/__create/polyfills';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Toaster } from 'sonner-native';
 import { AlertModal } from './polyfills/web/alerts.web';
 import './global.css';
+
+// Lazy load non-critical UI elements
+const Toaster = lazy(() => import('sonner-native').then(m => ({ default: m.Toaster })));
 
 // Memoized error reporter to avoid re-renders
 const GlobalErrorReporter = memo(() => {
@@ -50,7 +52,9 @@ const Wrapper = memo(() => {
       <SafeAreaProvider initialMetrics={INITIAL_SAFE_AREA_METRICS}>
         <App />
         <GlobalErrorReporter />
-        <Toaster />
+        <Suspense fallback={null}>
+          <Toaster />
+        </Suspense>
       </SafeAreaProvider>
     </ErrorBoundaryWrapper>
   );
@@ -63,6 +67,8 @@ const healthyResponse = {
 const useHandshakeParent = () => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      // Only accept messages from the parent window
+      if (event.source !== window.parent) return;
       if (event.data.type === 'sandbox:mobile:healthcheck') {
         window.parent.postMessage(healthyResponse, '*');
       }
@@ -84,8 +90,14 @@ const CreateApp = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      // Only accept messages from the parent window
+      if (event.source !== window.parent) return;
       if (event.data.type === 'sandbox:navigation' && event.data.pathname !== pathname) {
-        router.push(event.data.pathname);
+        // Validate pathname is a safe internal route
+        const newPath = event.data.pathname;
+        if (typeof newPath === 'string' && newPath.startsWith('/') && !newPath.includes('://')) {
+          router.push(newPath);
+        }
       }
     };
 

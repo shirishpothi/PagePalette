@@ -1,23 +1,33 @@
 import '@expo/metro-runtime';
-import { toPng } from 'html-to-image';
-import { serializeError } from 'serialize-error';
-import React, { useEffect, useState, Suspense, lazy, startTransition } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import './__create/consoleToParent';
 import { renderRootComponent } from 'expo-router/build/renderRootComponent';
-
-import { LoadSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 import './__create/reset.css';
 
 // Lazy load the main app to allow faster initial render
 const CreateApp = lazy(() => import('./App'));
 
-// Preload fonts early using link preload for faster FCP
+// Non-blocking font loading with preconnect for faster DNS/TLS
 if (typeof document !== 'undefined') {
-  const fontPreload = document.createElement('link');
-  fontPreload.rel = 'preload';
-  fontPreload.as = 'style';
-  fontPreload.href = 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap';
-  document.head.appendChild(fontPreload);
+  // Preconnect to font origins for faster connection
+  const preconnect1 = document.createElement('link');
+  preconnect1.rel = 'preconnect';
+  preconnect1.href = 'https://fonts.googleapis.com';
+  document.head.appendChild(preconnect1);
+
+  const preconnect2 = document.createElement('link');
+  preconnect2.rel = 'preconnect';
+  preconnect2.href = 'https://fonts.gstatic.com';
+  preconnect2.crossOrigin = 'anonymous';
+  document.head.appendChild(preconnect2);
+
+  // Load stylesheet without blocking render using media swap trick
+  const fontLink = document.createElement('link');
+  fontLink.rel = 'stylesheet';
+  fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap';
+  fontLink.media = 'print';
+  fontLink.onload = () => { fontLink.media = 'all'; };
+  document.head.appendChild(fontLink);
 }
 // Cache for inlined fonts to avoid re-fetching
 let fontsCached = false;
@@ -36,10 +46,18 @@ async function inlineGoogleFonts(): Promise<void> {
   await Promise.all(links.map(async (link) => {
     try {
       const href = link.href;
+      // Only process trusted Google Fonts URLs
+      const url = new URL(href);
+      if (url.protocol !== 'https:' || url.origin !== 'https://fonts.googleapis.com') return;
+      
       const res = await fetch(href, { 
         cache: 'force-cache',
         priority: 'low' as RequestPriority 
       });
+      if (!res.ok) return;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('text/css')) return;
+      
       let cssText = await res.text();
 
       // Ensure font URLs are absolute
@@ -93,6 +111,8 @@ const waitForScreenshotReady = async () => {
 export const useHandleScreenshotRequest = () => {
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
+      // Only accept messages from the parent window
+      if (event.source !== window.parent) return;
       if (event.data.type === "sandbox:web:screenshot:request") {
         try {
           await waitForScreenshotReady();
@@ -104,14 +124,14 @@ export const useHandleScreenshotRequest = () => {
             throw new Error("Could not find app element");
           }
 
-          // html-to-image already handles CORS, fonts, and CSS inlining
+          // Dynamically import html-to-image only when needed for screenshots
+          const { toPng } = await import('html-to-image');
           const dataUrl = await toPng(app, {
             cacheBust: true,
             skipFonts: false,
             width,
             height,
             style: {
-              // force snapshot sizing
               width: `${width}px`,
               height: `${height}px`,
               margin: "0",
@@ -162,15 +182,22 @@ const LoadingFallback = () => (
 );
 
 const CreateAppWithFonts = () => {
-  const [skiaReady, setSkiaReady] = useState(false);
-  
   useEffect(() => {
-    // Load Skia in background without blocking render
-    LoadSkiaWeb().then(() => {
-      startTransition(() => {
-        setSkiaReady(true);
-      });
-    });
+    // Defer Skia WASM loading until browser is idle to avoid blocking TTI
+    const loadSkia = async () => {
+      try {
+        const { LoadSkiaWeb } = await import('@shopify/react-native-skia/lib/module/web');
+        await LoadSkiaWeb();
+      } catch {
+        // Skia load failure is non-critical
+      }
+    };
+    
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(loadSkia, { timeout: 3000 });
+    } else {
+      setTimeout(loadSkia, 100);
+    }
   }, []);
   
   useHandleScreenshotRequest();

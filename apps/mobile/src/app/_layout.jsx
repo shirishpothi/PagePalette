@@ -2,34 +2,32 @@
 import { useAuth } from '@/utils/auth/useAuth';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { InteractionManager, Platform } from 'react-native';
 
-// Prevent splash screen from auto-hiding until we're ready
-SplashScreen.preventAutoHideAsync();
+// Only prevent auto-hide on native platforms (blocks first paint on web)
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync();
+}
 
 // Create QueryClient outside component to avoid recreation on re-renders
-// Using useMemo pattern for SSR-safe singleton
 let queryClientSingleton = null;
 const getQueryClient = () => {
   if (!queryClientSingleton) {
     queryClientSingleton = new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 1000 * 60 * 5, // 5 minutes
-          gcTime: 1000 * 60 * 30, // 30 minutes (renamed from cacheTime in v5)
+          staleTime: 1000 * 60 * 5,
+          gcTime: 1000 * 60 * 30,
           retry: 1,
           refetchOnWindowFocus: false,
-          // Optimize for faster initial load
           refetchOnMount: false,
           refetchOnReconnect: false,
-          // Network-only mode to speed up initial render
           networkMode: 'offlineFirst',
         },
         mutations: {
-          // Don't retry mutations by default
           retry: 0,
         },
       },
@@ -38,7 +36,7 @@ const getQueryClient = () => {
   return queryClientSingleton;
 };
 
-// Minimum time to show splash (prevents flash)
+// Minimum time to show splash on native (prevents flash)
 const MIN_SPLASH_TIME = Platform.OS === 'web' ? 0 : 300;
 
 export default function RootLayout() {
@@ -47,19 +45,19 @@ export default function RootLayout() {
   const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
-    // Initialize auth immediately using startTransition for better responsiveness
-    startTransition(() => {
-      initiate();
-    });
+    initiate();
   }, [initiate]);
 
   const hideSplash = useCallback(() => {
-    // Ensure minimum splash time to prevent jarring flash
+    if (Platform.OS === 'web') {
+      SplashScreen.hideAsync();
+      return;
+    }
+    
     const elapsed = Date.now() - startTimeRef.current;
     const remaining = Math.max(0, MIN_SPLASH_TIME - elapsed);
     
     const doHide = () => {
-      // Use InteractionManager to defer splash hide until after animations
       InteractionManager.runAfterInteractions(() => {
         SplashScreen.hideAsync();
       });
@@ -77,10 +75,6 @@ export default function RootLayout() {
       hideSplash();
     }
   }, [isReady, hideSplash]);
-
-  if (!isReady) {
-    return null;
-  }
 
   return (
     <QueryClientProvider client={queryClient}>

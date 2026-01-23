@@ -429,17 +429,15 @@ export const AlertModal = () => {
 	);
 };
 
-const styling = (userInterfaceStyle: string) =>
-	// @ts-expect-error - outlineStyle is for web only
-	StyleSheet.create({
+const styling = (userInterfaceStyle: string) => {
+	const baseStyles = {
 		container: {
 			flex: 1,
-			justifyContent: 'center',
-			alignItems: 'center',
+			justifyContent: 'center' as const,
+			alignItems: 'center' as const,
 			backgroundColor: 'rgba(0,0,0,0.2)',
 		},
 		content: {
-			backdropFilter: 'blur(20px)',
 			borderRadius: 12,
 			width: 244,
 		},
@@ -450,19 +448,19 @@ const styling = (userInterfaceStyle: string) =>
 		},
 		title: {
 			fontSize: 16,
-			fontWeight: '600',
-			textAlign: 'center',
+			fontWeight: '600' as const,
+			textAlign: 'center' as const,
 		},
 		message: {
 			fontSize: 12,
-			textAlign: 'center',
+			textAlign: 'center' as const,
 		},
 		button: {
 			paddingVertical: 12,
 		},
 		buttonText: {
 			color: '#007AFF',
-			textAlign: 'center',
+			textAlign: 'center' as const,
 			fontSize: 16,
 		},
 		textInput: {
@@ -475,7 +473,6 @@ const styling = (userInterfaceStyle: string) =>
 			marginBottom: -8,
 			marginHorizontal: 12,
 			fontSize: 12,
-			outlineStyle: 'none',
 		},
 		textInputTop: {
 			borderTopLeftRadius: 8,
@@ -500,7 +497,7 @@ const styling = (userInterfaceStyle: string) =>
 					: 'lightgray',
 		},
 		buttonRowContainer: {
-			flexDirection: 'row',
+			flexDirection: 'row' as const,
 			borderTopWidth: 0.5,
 			borderTopColor:
 				userInterfaceStyle === 'dark'
@@ -508,7 +505,7 @@ const styling = (userInterfaceStyle: string) =>
 					: 'lightgray',
 		},
 		buttonColumnContainer: {
-			flexDirection: 'column',
+			flexDirection: 'column' as const,
 		},
 		buttonRightBorder: {
 			borderRightWidth: 0.5,
@@ -517,6 +514,8 @@ const styling = (userInterfaceStyle: string) =>
 					? 'rgba(255,255,255,0.2)'
 					: 'lightgray',
 		},
-	});
+	};
+	return StyleSheet.create(baseStyles);
+};
 
 export default Alert;
