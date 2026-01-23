@@ -611,18 +611,9 @@ export default function OrderPage() {
                 </div>
 
                 <picture>
-                    <source
-                        type="image/webp"
-                        srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
-                        sizes="(max-width: 768px) 160px, 192px"
-                    />
-                    <source
-                        type="image/jpeg"
-                        srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
-                        sizes="(max-width: 768px) 160px, 192px"
-                    />
+                    <source type="image/png" srcSet="/logo-full-256.png 256w, /logo-full-320.png 320w" sizes="(max-width: 768px) 160px, 192px" />
                     <img
-                        src="/logo-full-256.jpg"
+                        src="/logo-full-256.png"
                         alt="PagePalette"
                         className="h-10 md:h-12 w-auto mx-auto object-contain opacity-80"
                         loading="lazy"

@@ -106,18 +106,9 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-3 group">
               <picture>
-                <source
-                  type="image/webp"
-                  srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
-                  sizes="160px"
-                />
-                <source
-                  type="image/jpeg"
-                  srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
-                  sizes="160px"
-                />
+                <source type="image/png" srcSet="/logo-full-256.png 256w, /logo-full-320.png 320w" sizes="160px" />
                 <img
-                  src="/logo-full-256.jpg"
+                  src="/logo-full-256.png"
                   alt="PagePalette"
                   width="160"
                   height="40"

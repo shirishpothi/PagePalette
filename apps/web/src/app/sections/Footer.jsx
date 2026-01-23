@@ -9,18 +9,9 @@ export default function Footer() {
         <a href="/" className="inline-block mb-4 group">
           <div className="relative">
             <picture>
-              <source
-                type="image/webp"
-                srcSet="/logo-full-256.webp 256w, /logo-full-320.webp 320w"
-                sizes="(max-width: 768px) 192px, 256px"
-              />
-              <source
-                type="image/jpeg"
-                srcSet="/logo-full-256.jpg 256w, /logo-full-320.jpg 320w"
-                sizes="(max-width: 768px) 192px, 256px"
-              />
+              <source type="image/png" srcSet="/logo-full-256.png 256w, /logo-full-320.png 320w" sizes="(max-width: 768px) 192px, 256px" />
               <img
-                src="/logo-full-256.jpg"
+                src="/logo-full-256.png"
                 alt="PagePalette"
                 className="h-12 sm:h-16 md:h-20 w-auto mx-auto object-contain transition-all duration-300 group-hover:scale-105"
                 width="256"
