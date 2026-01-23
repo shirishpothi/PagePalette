@@ -18,6 +18,68 @@ const StripeCheckout = lazy(() => import("./StripeCheckout"));
 // Disabled as PagePalette JA Company liquidated on December 31, 2025
 const PAYMENTS_ENABLED = false;
 
+// Animated Checkmark Component with looping animation
+const AnimatedCheckmark = () => {
+    return (
+        <div className="relative w-16 h-16 md:w-20 md:h-20">
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 rounded-full bg-[#4ADE80]/20 animate-ping" style={{ animationDuration: '2s' }} />
+            
+            {/* Secondary pulse ring */}
+            <div className="absolute inset-0 rounded-full bg-[#4ADE80]/10 animate-pulse" />
+            
+            {/* Main circle with glow */}
+            <div className="absolute inset-0 rounded-full bg-[#4ADE80] shadow-2xl shadow-[#4ADE80]/50 flex items-center justify-center">
+                {/* Animated SVG Checkmark */}
+                <svg 
+                    className="w-8 h-8 md:w-10 md:h-10" 
+                    viewBox="0 0 24 24" 
+                    fill="none"
+                    style={{ transform: 'rotate(-5deg)' }}
+                >
+                    <path
+                        d="M4 12.5L9.5 18L20 6"
+                        stroke="#0a0a0a"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="animate-draw-check"
+                        style={{
+                            strokeDasharray: 30,
+                            strokeDashoffset: 30,
+                            animation: 'drawCheck 0.6s ease-out forwards, pulseCheck 2s ease-in-out 0.6s infinite'
+                        }}
+                    />
+                </svg>
+            </div>
+            
+            {/* Sparkle effects */}
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-bounce opacity-80" style={{ animationDelay: '0.5s', animationDuration: '1.5s' }} />
+            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-[#4ADE80] rounded-full animate-bounce opacity-60" style={{ animationDelay: '0.8s', animationDuration: '1.8s' }} />
+            <div className="absolute top-0 left-0 w-2 h-2 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '1s', animationDuration: '2.5s' }} />
+            
+            {/* Inline keyframes */}
+            <style>{`
+                @keyframes drawCheck {
+                    to {
+                        stroke-dashoffset: 0;
+                    }
+                }
+                @keyframes pulseCheck {
+                    0%, 100% {
+                        stroke-width: 3;
+                        opacity: 1;
+                    }
+                    50% {
+                        stroke-width: 3.5;
+                        opacity: 0.9;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+};
+
 // --- Constants & Data ---
 // Note: Removed STL file URLs for faster loading. Using emoji representations.
 const STL_OPTIONS = [
@@ -1676,8 +1738,8 @@ export default function OrderPage() {
 
         return (
         <div className="max-w-3xl mx-auto animate-fade-in-up text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-[#4ADE80] rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl shadow-[#4ADE80]/30">
-                <Check size={32} className="text-[#0a0a0a]" />
+            <div className="mx-auto mb-4 md:mb-6 flex justify-center">
+                <AnimatedCheckmark />
             </div>
 
             <h2 className="text-2xl md:text-4xl font-bold text-white font-proxima-sera mb-2 md:mb-4">
@@ -1832,6 +1894,13 @@ export default function OrderPage() {
         );
     };
 
+    const stepDisplay = step > 5 ? 5 : step;
+    const stepLabel = step === 1 ? "Select Bundle" :
+        step === 2 ? "Customize" :
+            step === 3 ? "Information" :
+                step === 4 ? "Payment" :
+                    step === 5 ? "Receipt" : "Processing";
+
     return (
         <div className="min-h-screen bg-[#2d3f44] text-white font-sans overflow-x-hidden selection:bg-[#4ADE80] selection:text-[#0a0a0a]">
             {/* Background gradient - inline instead of external URL for faster loading */}
@@ -1845,13 +1914,10 @@ export default function OrderPage() {
                     </button>
                     <div>
                         <h1 className="text-sm md:text-lg font-bold font-proxima-sera leading-tight">
-                            Step {step} of 5
+                            Step {stepDisplay} of 5
                         </h1>
                         <p className="text-[10px] md:text-xs text-[#888888] font-light">
-                            {step === 1 ? "Select Bundle" :
-                                step === 2 ? "Customize" :
-                                    step === 3 ? "Information" :
-                                        step === 4 ? "Payment" : "Receipt"}
+                            {stepLabel}
                         </p>
                     </div>
                 </div>
@@ -1861,7 +1927,7 @@ export default function OrderPage() {
                     {[1, 2, 3, 4, 5].map(s => (
                         <div
                             key={s}
-                            className={`w-2 h-2 rounded-full transition-all ${s <= step ? 'bg-[#4ADE80]' : 'bg-[#333]'} ${s === step ? 'w-4' : ''}`}
+                            className={`w-2 h-2 rounded-full transition-all ${s <= stepDisplay ? 'bg-[#4ADE80]' : 'bg-[#333]'} ${s === stepDisplay ? 'w-4' : ''}`}
                         />
                     ))}
                 </div>
@@ -1872,7 +1938,7 @@ export default function OrderPage() {
                 <div className="hidden md:block max-w-md mx-auto h-1 bg-[#1f1f1f] rounded-full mb-12 overflow-hidden">
                     <div
                         className="h-full bg-[#4ADE80] transition-all duration-500 ease-out"
-                        style={{ width: `${(step / 5) * 100}%` }}
+                        style={{ width: `${(stepDisplay / 5) * 100}%` }}
                     />
                 </div>
 
