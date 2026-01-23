@@ -22,20 +22,27 @@ const PAYMENTS_ENABLED = false;
 const AnimatedCheckmark = () => {
     return (
         <div className="relative w-16 h-16 md:w-20 md:h-20">
-            {/* Outer pulsing ring */}
-            <div className="absolute inset-0 rounded-full bg-[#4ADE80]/20 animate-ping" style={{ animationDuration: '2s' }} />
-            
-            {/* Secondary pulse ring */}
-            <div className="absolute inset-0 rounded-full bg-[#4ADE80]/10 animate-pulse" />
-            
+            {/* Rotating gradient ring */}
+            <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                    background: 'conic-gradient(from 180deg, rgba(74,222,128,0.05), rgba(74,222,128,0.55), rgba(74,222,128,0.05))',
+                    animation: 'spinRing 2.8s linear infinite'
+                }}
+            />
+            <div className="absolute inset-[3px] rounded-full bg-[#0f1115]" />
+
+            {/* Soft pulse halo */}
+            <div className="absolute inset-[-6px] rounded-full bg-[#4ADE80]/15" style={{ animation: 'haloPulse 2.4s ease-in-out infinite' }} />
+
             {/* Main circle with glow */}
-            <div className="absolute inset-0 rounded-full bg-[#4ADE80] shadow-2xl shadow-[#4ADE80]/50 flex items-center justify-center">
+            <div className="absolute inset-[6px] rounded-full bg-[#4ADE80] shadow-[0_0_30px_rgba(74,222,128,0.55)] flex items-center justify-center" style={{ animation: 'popIn 2.4s ease-in-out infinite' }}>
                 {/* Animated SVG Checkmark */}
-                <svg 
-                    className="w-8 h-8 md:w-10 md:h-10" 
-                    viewBox="0 0 24 24" 
+                <svg
+                    className="w-8 h-8 md:w-10 md:h-10"
+                    viewBox="0 0 24 24"
                     fill="none"
-                    style={{ transform: 'rotate(-5deg)' }}
+                    style={{ transform: 'rotate(-8deg)' }}
                 >
                     <path
                         d="M4 12.5L9.5 18L20 6"
@@ -43,21 +50,21 @@ const AnimatedCheckmark = () => {
                         strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="animate-draw-check"
                         style={{
                             strokeDasharray: 30,
                             strokeDashoffset: 30,
-                            animation: 'drawCheck 0.6s ease-out forwards, pulseCheck 2s ease-in-out 0.6s infinite'
+                            animation: 'drawCheck 0.7s ease-out forwards, checkGlow 2.4s ease-in-out 0.7s infinite'
                         }}
                     />
                 </svg>
             </div>
-            
-            {/* Sparkle effects */}
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-bounce opacity-80" style={{ animationDelay: '0.5s', animationDuration: '1.5s' }} />
-            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-[#4ADE80] rounded-full animate-bounce opacity-60" style={{ animationDelay: '0.8s', animationDuration: '1.8s' }} />
-            <div className="absolute top-0 left-0 w-2 h-2 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '1s', animationDuration: '2.5s' }} />
-            
+
+            {/* Orbiting sparks */}
+            <div className="absolute inset-0" style={{ animation: 'orbit 2.4s linear infinite' }}>
+                <div className="absolute top-1 right-2 w-2 h-2 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+                <div className="absolute bottom-1 left-2 w-1.5 h-1.5 rounded-full bg-[#4ADE80]/80 shadow-[0_0_6px_rgba(74,222,128,0.7)]" />
+            </div>
+
             {/* Inline keyframes */}
             <style>{`
                 @keyframes drawCheck {
@@ -65,14 +72,42 @@ const AnimatedCheckmark = () => {
                         stroke-dashoffset: 0;
                     }
                 }
-                @keyframes pulseCheck {
+                @keyframes checkGlow {
                     0%, 100% {
                         stroke-width: 3;
                         opacity: 1;
                     }
                     50% {
-                        stroke-width: 3.5;
+                        stroke-width: 3.6;
                         opacity: 0.9;
+                    }
+                }
+                @keyframes spinRing {
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+                @keyframes haloPulse {
+                    0%, 100% {
+                        transform: scale(0.95);
+                        opacity: 0.55;
+                    }
+                    50% {
+                        transform: scale(1.06);
+                        opacity: 0.9;
+                    }
+                }
+                @keyframes popIn {
+                    0%, 100% {
+                        transform: scale(0.98);
+                    }
+                    50% {
+                        transform: scale(1.03);
+                    }
+                }
+                @keyframes orbit {
+                    to {
+                        transform: rotate(360deg);
                     }
                 }
             `}</style>
