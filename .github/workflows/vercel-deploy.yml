@@ -1,13 +1,27 @@
-name: Deploy Static Site to Vercel
+name: Deploy to Vercel
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy_mode:
+        description: 'Deployment mode'
+        required: false
+        default: 'static'
+        type: choice
+        options:
+          - static
+          - full
 
 permissions:
   contents: read
   id-token: write
+
+env:
+  # Default to static mode, can be overridden by workflow_dispatch input
+  # To enable full mode permanently, change this to 'full'
+  DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || 'static' }}
 
 jobs:
   deploy:
@@ -20,14 +34,13 @@ jobs:
 
       - name: Pull Vercel Environment
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --build-env DEPLOY_MODE=${{ env.DEPLOY_MODE }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          DEPLOY_MODE: ${{ env.DEPLOY_MODE }}
