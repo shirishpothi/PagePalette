@@ -1,8 +1,11 @@
-name: Build and Deploy to Vercel
+name: Build and Deploy to Vercel (ARCHIVED)
 
+# ARCHIVED: PagePalette has been liquidated. Static site now served via GitHub Pages.
+# To re-enable, uncomment the 'on' trigger below and remove workflow_dispatch.
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:  # Manual trigger only - not auto-deploying
+  # push:
+  #   branches: [ main ]
 
 permissions:
   contents: read

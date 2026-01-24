@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PagePalette — A Legacy of Sustainable Creativity</title>
+  <meta name="description" content="PagePalette was a student-run company creating customizable, eco-friendly notebooks. JA Singapore 2025/2026.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #2d4a4a;
+      --teal-deep: #1a2f2f;
+      --sage: #7a9e7e;
+      --cream: #faf8f3;
+      --warm-white: #fffef9;
+      --terracotta: #c4785a;
+      --gold: #c9a959;
+      --text: #1a1a1a;
+      --text-muted: #5a5a5a;
+      --speckle-1: #d4c4b0;
+      --speckle-2: #8fb4c9;
+      --speckle-3: #c98b8b;
+      --speckle-4: #9ab88f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    /* Speckled texture overlay - mimics the recycled plastic */
+    .speckle-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+      background-image: 
+        radial-gradient(circle at 20% 30%, var(--speckle-1) 1px, transparent 1px),
+        radial-gradient(circle at 80% 20%, var(--speckle-2) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 40% 70%, var(--speckle-3) 1px, transparent 1px),
+        radial-gradient(circle at 70% 60%, var(--speckle-4) 1px, transparent 1px),
+        radial-gradient(circle at 10% 80%, var(--speckle-2) 1px, transparent 1px),
+        radial-gradient(circle at 90% 85%, var(--speckle-1) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 55% 15%, var(--speckle-3) 1px, transparent 1px),
+        radial-gradient(circle at 30% 50%, var(--speckle-4) 1px, transparent 1px);
+      background-size: 200px 200px;
+    }
+
+    /* Grain overlay */
+    .grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 24px;
+      z-index: 1;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, 
+        rgba(250,248,243,0) 0%, 
+        rgba(250,248,243,0.6) 50%,
+        rgba(250,248,243,1) 100%);
+      z-index: -1;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--teal);
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-radius: 100px;
+      margin-bottom: 40px;
+      animation: fadeSlideDown 1s ease-out 0.2s both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+
+    .hero-logo {
+      width: 160px;
+      margin-bottom: 32px;
+      animation: fadeSlideDown 1s ease-out 0.4s both;
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(3rem, 10vw, 7rem);
+      font-weight: 400;
+      color: var(--teal-deep);
+      line-height: 1;
+      margin-bottom: 24px;
+      animation: fadeSlideDown 1s ease-out 0.6s both;
+    }
+
+    .hero-tagline {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-style: italic;
+      color: var(--sage);
+      margin-bottom: 48px;
+      animation: fadeSlideDown 1s ease-out 0.8s both;
+    }
+
+    .hero-description {
+      max-width: 540px;
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 60px;
+      animation: fadeSlideDown 1s ease-out 1s both;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      animation: fadeSlideDown 1s ease-out 1.2s both;
+    }
+
+    .scroll-indicator span {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(180deg, var(--teal) 0%, transparent 100%);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.8); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+
+    /* Notice Banner */
+    .notice {
+      position: relative;
+      z-index: 2;
+      background: var(--teal-deep);
+      color: var(--cream);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .notice strong {
+      color: var(--gold);
+    }
+
+    /* Stats Section */
+    .stats-section {
+      position: relative;
+      z-index: 2;
+      padding: 100px 24px;
+      background: var(--warm-white);
+    }
+
+    .stats-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+
+    .stat-item {
+      padding: 48px 24px;
+      text-align: center;
+      border-right: 1px solid rgba(45,74,74,0.1);
+      animation: fadeSlideUp 0.8s ease-out both;
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-item:nth-child(1) { animation-delay: 0.1s; }
+    .stat-item:nth-child(2) { animation-delay: 0.2s; }
+    .stat-item:nth-child(3) { animation-delay: 0.3s; }
+    .stat-item:nth-child(4) { animation-delay: 0.4s; }
+
+    .stat-value {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 600;
+      color: var(--teal-deep);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    /* Content Sections */
+    .content-section {
+      position: relative;
+      z-index: 2;
+      padding: 120px 24px;
+    }
+
+    .content-section:nth-child(odd) {
+      background: var(--cream);
+    }
+
+    .content-section:nth-child(even) {
+      background: var(--warm-white);
+    }
+
+    .section-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      margin-bottom: 60px;
+      text-align: center;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 400;
+      color: var(--teal-deep);
+      line-height: 1.2;
+    }
+
+    /* About Cards */
+    .about-grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .about-card {
+      background: var(--warm-white);
+      border: 1px solid rgba(45,74,74,0.08);
+      border-radius: 2px;
+      padding: 48px;
+      transition: all 0.4s ease;
+    }
+
+    .about-card:hover {
+      border-color: var(--sage);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(45,74,74,0.08);
+    }
+
+    .about-card h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--teal-deep);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .about-card h3::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: var(--gold);
+    }
+
+    .about-card p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Product Showcase */
+    .product-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .product-image {
+      position: relative;
+    }
+
+    .product-image img {
+      width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 40px 80px rgba(45,74,74,0.15);
+    }
+
+    .product-image::after {
+      content: '';
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 100px;
+      height: 100px;
+      border: 2px solid var(--sage);
+      border-radius: 2px;
+      z-index: -1;
+    }
+
+    .product-details h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
+      color: var(--teal-deep);
+      margin-bottom: 24px;
+    }
+
+    .product-details p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 32px;
+    }
+
+    .product-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .feature-tag {
+      padding: 8px 16px;
+      background: var(--teal);
+      color: var(--cream);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      border-radius: 100px;
+    }
+
+    /* Leadership */
+    .leadership-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 24px;
+    }
+
+    .leadership-grid.president-row {
+      grid-template-columns: 1fr;
+      max-width: 200px;
+      margin: 0 auto 40px auto;
+    }
+
+    .leader-card {
+      text-align: center;
+      padding: 32px 16px;
+      background: var(--cream);
+      border: 1px solid rgba(45,74,74,0.06);
+      transition: all 0.3s ease;
+    }
+
+    .president-row .leader-card {
+      padding: 24px 20px;
+    }
+
+    .leader-card:hover {
+      background: var(--warm-white);
+      transform: translateY(-4px);
+    }
+
+    .leader-avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--sage) 0%, var(--teal) 100%);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .leader-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--teal-deep);
+      margin-bottom: 4px;
+    }
+
+    .leader-role {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--sage) 0%, var(--teal) 100%);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 0 0 48px 48px;
+    }
+
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      background: var(--teal);
+      border-radius: 50%;
+      border: 3px solid var(--cream);
+    }
+
+    .timeline-date {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 8px;
+    }
+
+    .timeline-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--teal-deep);
+      margin-bottom: 8px;
+    }
+
+    .timeline-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Financial */
+    .financial-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .financial-card {
+      background: var(--teal-deep);
+      color: var(--cream);
+      padding: 40px;
+      border-radius: 2px;
+      text-align: center;
+    }
+
+    .financial-card.highlight {
+      background: linear-gradient(135deg, var(--teal) 0%, var(--teal-deep) 100%);
+    }
+
+    .financial-value {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .financial-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    /* Acknowledgments */
+    .acknowledgments {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .acknowledgments p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.9;
+    }
+
+    .acknowledgments strong {
+      color: var(--teal-deep);
+      font-weight: 600;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 2;
+      background: var(--teal-deep);
+      color: var(--cream);
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      width: 120px;
+      filter: brightness(0) invert(1);
+      opacity: 0.9;
+      margin-bottom: 24px;
+    }
+
+    footer p {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+
+    .footer-tagline {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.3rem;
+      font-style: italic;
+      opacity: 0.9;
+      margin-top: 32px;
+    }
+
+    /* Animations */
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .leadership-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .stat-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(45,74,74,0.1);
+      }
+      .stat-item:nth-child(odd) { border-right: 1px solid rgba(45,74,74,0.1); }
+      .stat-item:nth-child(3), .stat-item:nth-child(4) { border-bottom: none; }
+      .product-showcase {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .product-image { order: -1; }
+      .leadership-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .financial-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .stat-item {
+        border-right: none;
+        border-bottom: 1px solid rgba(45,74,74,0.1);
+      }
+      .stat-item:last-child { border-bottom: none; }
+      .leadership-grid {
+        grid-template-columns: 1fr;
+      }
+      .leadership-grid.president-row {
+        max-width: 180px;
+      }
+      .content-section {
+        padding: 80px 24px;
+      }
+      .about-card {
+        padding: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="speckle-bg"></div>
+  <div class="grain"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Junior Achievement Singapore 2025–2026</div>
+    <div class="hero-badge" style="background: var(--gold); color: var(--teal-deep); margin-top: -32px;">🏆 Best Company Annual Report — JA COY 2025</div>
+    <img src="logo.png" alt="PagePalette" class="hero-logo">
+    <h1>PagePalette</h1>
+    <p class="hero-tagline">Sustainable. Modular. Yours.</p>
+    <p class="hero-description">
+      A student-run company that transformed recycled plastic into customizable notebooks, 
+      proving that sustainability and self-expression can go hand in hand.
+    </p>
+    <div class="scroll-indicator">
+      <span>Our Legacy</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- Notice -->
+  <div class="notice">
+    PagePalette has completed its JA journey and <strong>successfully liquidated</strong>. 
+    Thank you to our customers, shareholders, and supporters.
+  </div>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">S$1,079</div>
+        <div class="stat-label">Revenue Generated</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">54</div>
+        <div class="stat-label">Notebooks Sold</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">26kg</div>
+        <div class="stat-label">Plastic Diverted from Landfill</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">S$225</div>
+        <div class="stat-label">Donated to SHINE.sg</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Who We Were</span>
+        <h2 class="section-title">A Vision for Creative Sustainability</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-card">
+          <h3>Our Mission</h3>
+          <p>To build a world where every notebook is as unique as the person using it, 
+          intertwining fun with social responsibility.</p>
+        </div>
+        <div class="about-card">
+          <h3>Social Impact</h3>
+          <p>Beyond sustainability, we donated a portion of our profits to SHINE.sg, 
+          supporting children's mental wellbeing. We paid a 5% dividend to our 75 shareholders 
+          and completed our JA journey with meaningful, measurable impact.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Our Product</span>
+        <h2 class="section-title">The Palette Notebook</h2>
+      </div>
+      <div class="product-showcase">
+        <div class="product-image">
+          <img src="marketing-image.png" alt="Palette Notebooks with customizable PagePals">
+        </div>
+        <div class="product-details">
+          <h3>Uniquely Yours, Naturally Sustainable</h3>
+          <p>Each cover was laser-cut from fully recycled HDPE plastic, featuring 35 holes 
+          for attaching customizable 3D-printed charms called "PagePals." Due to the nature 
+          of recycled materials, every cover had a unique speckled pattern—no two notebooks 
+          were ever the same.</p>
+          <div class="product-features">
+            <span class="feature-tag">Recycled HDPE Covers</span>
+            <span class="feature-tag">35 Customization Points</span>
+            <span class="feature-tag">3D-Printed PagePals</span>
+            <span class="feature-tag">100% Recyclable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leadership -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Our Team</span>
+        <h2 class="section-title">Leadership</h2>
+      </div>
+      <!-- President Row -->
+      <div class="leadership-grid president-row">
+        <div class="leader-card">
+          <div class="leader-avatar">JD</div>
+          <div class="leader-name">Julian Dizon</div>
+          <div class="leader-role">President</div>
+        </div>
+      </div>
+      <!-- VPs Row -->
+      <div class="leadership-grid">
+        <div class="leader-card">
+          <div class="leader-avatar">BF</div>
+          <div class="leader-name">Benjamin Faber</div>
+          <div class="leader-role">VP of Finance</div>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar">SP</div>
+          <div class="leader-name">Shirish Pothi</div>
+          <div class="leader-role">VP of HR</div>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar">YG</div>
+          <div class="leader-name">Yuchen Gao</div>
+          <div class="leader-role">VP of PR</div>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar">PP</div>
+          <div class="leader-name">Prada Pek</div>
+          <div class="leader-role">VP of Marketing</div>
+        </div>
+        <div class="leader-card">
+          <div class="leader-avatar">NX</div>
+          <div class="leader-name">Nicole Xu</div>
+          <div class="leader-role">VP of Production</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Our Story</span>
+        <h2 class="section-title">The Journey</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Phase One</div>
+          <h4 class="timeline-title">Company Formation</h4>
+          <p class="timeline-desc">First meeting and introduction to Junior Achievement. Elections held and leadership team assembled with a shared vision for sustainable products.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Phase Two</div>
+          <h4 class="timeline-title">Product Development</h4>
+          <p class="timeline-desc">Brainstormed ideas, chose notebooks, and refined prototypes. Partnered with Semula for recycled HDPE plastic sourcing.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Phase Three</div>
+          <h4 class="timeline-title">Production</h4>
+          <p class="timeline-desc">Laser-cut recycled plastic covers, 3D-printed PagePals, and assembled notebooks with binding rings.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Phase Four</div>
+          <h4 class="timeline-title">Christmas Fair Sales</h4>
+          <p class="timeline-desc">Major sales event at school Christmas fair featuring special Christmas-themed PagePals collection.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Phase Five</div>
+          <h4 class="timeline-title">Liquidation</h4>
+          <p class="timeline-desc">Successfully completed JA journey. Paid 5% dividend to shareholders and donated S$225.25 to SHINE.sg.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Financial -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">The Numbers</span>
+        <h2 class="section-title">Financial Summary</h2>
+      </div>
+      <div class="financial-grid">
+        <div class="financial-card highlight">
+          <div class="financial-value">S$375</div>
+          <div class="financial-label">Share Capital (75 shares)</div>
+        </div>
+        <div class="financial-card">
+          <div class="financial-value">S$244</div>
+          <div class="financial-label">Net Profit</div>
+        </div>
+        <div class="financial-card">
+          <div class="financial-value">5%</div>
+          <div class="financial-label">Shareholder Dividend</div>
+        </div>
+        <div class="financial-card highlight">
+          <div class="financial-value">S$17.50</div>
+          <div class="financial-label">Total Dividends Paid</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Acknowledgments -->
+  <section class="content-section">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-label">Gratitude</span>
+        <h2 class="section-title">Acknowledgments</h2>
+      </div>
+      <div class="acknowledgments">
+        <p>
+          Special thanks to our advisors <strong>Mike Matthews</strong> and <strong>Michel Borst</strong>, 
+          our teacher advisor <strong>Jim Bevan</strong>, JA Singapore representative <strong>Marissa Lim</strong>, 
+          and the design teachers who provided facilities for production. We are grateful to 
+          <strong>Nexus International School</strong> and all our customers who supported our mission 
+          to make sustainability personal and creative.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / Licensing Section -->
+  <section class="content-section" style="background: var(--teal-deep); color: var(--cream);">
+    <div class="section-container" style="text-align: center;">
+      <div class="section-header">
+        <span class="section-label" style="color: var(--gold);">Get In Touch</span>
+        <h2 class="section-title" style="color: var(--cream);">Inquiries & Licensing</h2>
+      </div>
+      <p style="max-width: 600px; margin: 0 auto 32px auto; color: rgba(250,248,243,0.85);">
+        Interested in our designs, business model, or seeking licensing opportunities? 
+        Have questions about our sustainable production process? We'd love to hear from you.
+      </p>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px;">
+        <a href="mailto:shirish.pothi.27@nexus.edu.sg" style="display: inline-block; padding: 14px 32px; background: var(--sage); color: var(--cream); text-decoration: none; border-radius: 6px; font-weight: 500;">shirish.pothi.27@nexus.edu.sg</a>
+        <a href="mailto:julian.dizon.27@nexus.edu.sg" style="display: inline-block; padding: 14px 32px; background: var(--sage); color: var(--cream); text-decoration: none; border-radius: 6px; font-weight: 500;">julian.dizon.27@nexus.edu.sg</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <img src="logo.png" alt="PagePalette" class="footer-logo">
+    <p>PagePalette © 2025–2026</p>
+    <p>Junior Achievement Singapore</p>
+    <p>Run by students of Nexus International School</p>
+    <p class="footer-tagline">"Sustainable. Modular. Yours."</p>
+    <p style="margin-top: 24px; font-size: 0.85rem; color: var(--text-muted);">
+      For customer inquiries, licensing, or partnership opportunities:<br>
+      <a href="mailto:shirish.pothi.27@nexus.edu.sg" style="color: var(--sage);">shirish.pothi.27@nexus.edu.sg</a> · 
+      <a href="mailto:julian.dizon.27@nexus.edu.sg" style="color: var(--sage);">julian.dizon.27@nexus.edu.sg</a>
+    </p>
+  </footer>
+</body>
+</html>

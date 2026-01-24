@@ -1,0 +1,59 @@
+/* Performance-optimized reset CSS */
+html, body, #__next, #root {
+  -webkit-overflow-scrolling: touch;
+  /* Enable GPU acceleration for smoother scrolling */
+  transform: translateZ(0);
+}
+#__next, #root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* Optimize layout calculations */
+  contain: layout style;
+}
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  /* Allows you to scroll below the viewport; default value is visible */
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -ms-overflow-style: scrollbar;
+  /* Reduce paint operations */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimize image loading */
+img, video {
+  /* Lazy loading for off-screen images */
+  content-visibility: auto;
+  /* Prevent layout shifts */
+  max-width: 100%;
+  height: auto;
+}
+
+/* Optimize animations for performance */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    /* Use GPU-accelerated transforms */
+    will-change: auto;
+  }
+}
+
+input:focus,
+textarea:focus,
+button:focus,
+select:focus {
+  outline: none;        /* removes the glow */
+  box-shadow: none;     /* Chrome fallback */
+}
+
+/* Firefox also adds padding on some controls */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+}

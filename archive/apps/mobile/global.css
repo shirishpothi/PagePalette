@@ -1,0 +1,36 @@
+/* Font loaded via JS for non-blocking behavior - see index.web.tsx */
+
+/* Font-display swap ensures text is visible immediately with fallback font */
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  size-adjust: 100%;
+}
+
+:root {
+  contain: layout style;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  /* Enable GPU acceleration for smoother scrolling */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+  /* Reduce paint operations */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimize images for LCP */
+img {
+  content-visibility: auto;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
