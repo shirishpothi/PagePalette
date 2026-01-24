@@ -1,26 +1,26 @@
 # AGENTS
 
-## Current Status: ARCHIVED / STATIC SITE
+## Current Status: STATIC SITE
 
-PagePalette has been liquidated. The repository now serves a static GitHub Pages site.
+PagePalette has been liquidated. The repository now serves a static site via Vercel.
 
 ## Active Structure
-- `docs/` - Static GitHub Pages site (index.html + assets)
-- `archive/apps/` - Archived web and mobile source code
+- `apps/web/public/` - Static site (index.html + assets) deployed to Vercel
+- `docs/` - Mirror for GitHub Pages
+- `archive/apps/` - Archived React/Expo source code (no APIs)
 
 ## Commands
-- No build commands needed - static HTML served directly from `docs/`
-- To preview locally: `open docs/index.html` or use any static server
+- No build commands needed - static HTML served directly
+- To preview locally: `open apps/web/public/index.html` or use any static server
 
-## GitHub Pages Deployment
-- Automatic deployment via `.github/workflows/pages.yml` on push to `main`
-- Configure in repo Settings → Pages → Source: GitHub Actions
+## Vercel Deployment
+- Automatic deployment via `.github/workflows/vercel-deploy.yml` on push to `main`
+- Domain: pagepalette.tech
 
 ## To Restore Full App (if needed)
-1. Move `archive/apps/` to root `apps/`
-2. Uncomment triggers in `.github/workflows/vercel-deploy.yml`
-3. Set `FEATURE_FULL_APP=true` environment variable
-4. Follow original AGENTS.md instructions preserved below
+1. Restore files from `archive/apps/` to `apps/`
+2. Update vercel.json with framework config
+3. Follow original AGENTS.md instructions preserved below
 
 ---
 
