@@ -1,0 +1,6 @@
+# Ignore archived code to prevent Vercel from detecting old frameworks
+archive/
+docs/
+*.pdf
+*.stl
+*.md
